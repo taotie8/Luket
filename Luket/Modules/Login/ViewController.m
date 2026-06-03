@@ -106,7 +106,7 @@
 
 - (UIImageView *)imageViewWithName:(NSString *)name {
     UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:name]];
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    imageView.contentMode = UIViewContentModeScaleToFill;
     return imageView;
 }
 
@@ -133,12 +133,14 @@
     
     self.backgroundImageView.frame = self.view.bounds;
     
-    CGFloat cardWidth = 340.0;
+    CGFloat topCardY = self.view.safeAreaInsets.top + 5.0;
+    CGFloat cardWidth = viewWidth - 40.0;
+    
     CGFloat cardHeight = 467.0;
     CGFloat cardX = (viewWidth - cardWidth) / 2.0;
     CGFloat cardY = (viewHeight - cardHeight) / 2.0 - 10.0;
     
-    self.cardContentView.frame = CGRectMake(cardX, cardY, cardWidth, cardHeight);
+    self.cardContentView.frame = CGRectMake(20, cardY, cardWidth, cardHeight);
     self.cardImageView.frame = self.cardContentView.bounds;
     self.welcomeImageView.frame = CGRectMake((cardWidth - 153.0) / 2.0, 65.0, 153.0, 60.0);
     self.emailTitleImageView.frame = CGRectMake((cardWidth - 184.0) / 2.0, CGRectGetMaxY(self.welcomeImageView.frame) + 36.0, 184.0, 22.0);

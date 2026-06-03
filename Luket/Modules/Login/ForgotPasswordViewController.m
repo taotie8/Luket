@@ -56,7 +56,7 @@
     [self.view addSubview:self.formContentView];
     
     self.formCardImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"AuthFormCard"]];
-    self.formCardImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.formCardImageView.contentMode = UIViewContentModeScaleToFill;
     [self.formContentView addSubview:self.formCardImageView];
     
     self.emailLabel = [self titleLabelWithText:@"Email"];
@@ -115,7 +115,7 @@
 - (void)layoutViews {
     CGFloat viewWidth = CGRectGetWidth(self.view.bounds);
     CGFloat topCardY = self.view.safeAreaInsets.top + 5.0;
-    CGFloat topCardWidth = viewWidth - 54.0;
+    CGFloat topCardWidth = viewWidth - 20.0;
     
     self.topCardView.frame = CGRectMake(20, topCardY, topCardWidth, 56.0);
     self.backButton.frame = CGRectMake(16.0, 10.0, 32.0, 32.0);
@@ -125,7 +125,7 @@
     CGFloat cardX = (viewWidth - cardWidth) / 2.0;
     CGFloat cardY = 138.0;
     
-    self.formContentView.frame = CGRectMake(cardX, cardY, cardWidth, 447.0);
+    self.formContentView.frame = CGRectMake(20.0, cardY, topCardWidth, 447.0);
     self.formCardImageView.frame = self.formContentView.bounds;
     self.emailLabel.frame = CGRectMake(0.0, 63.0, cardWidth, 22.0);
     self.emailTextField.frame = CGRectMake(16.0, 97.0, cardWidth - 32.0, 51.0);

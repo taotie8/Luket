@@ -55,7 +55,7 @@
     [self.view addSubview:self.formContentView];
     
     self.formCardImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalFormCard"]];
-    self.formCardImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.formCardImageView.contentMode = UIViewContentModeScaleToFill;
     [self.formContentView addSubview:self.formCardImageView];
     
     [self setupFormViews];
@@ -81,10 +81,10 @@
     [self.formContentView addSubview:self.nameTextField];
     
     UILabel *aboutLabel = [self titleLabelWithText:@"About  me"];
-    aboutLabel.frame = CGRectMake(26.0, 310.0, 220.0, 28.0);
+    aboutLabel.frame = CGRectMake(26.0, 252.0, 220.0, 28.0);
     [self.formContentView addSubview:aboutLabel];
     
-    self.aboutTextView = [[UITextView alloc] initWithFrame:CGRectMake(26.0, 358.0, 308.0, 112.0)];
+    self.aboutTextView = [[UITextView alloc] initWithFrame:CGRectMake(26.0, 290.0, 308.0, 92.0)];
     self.aboutTextView.backgroundColor = [UIColor colorWithRed:31.0 / 255.0 green:62.0 / 255.0 blue:102.0 / 255.0 alpha:1.0];
     self.aboutTextView.layer.cornerRadius = 11.0;
     self.aboutTextView.layer.masksToBounds = YES;
@@ -96,11 +96,11 @@
     [self.formContentView addSubview:self.aboutTextView];
     
     UILabel *ageLabel = [self titleLabelWithText:@"Age"];
-    ageLabel.frame = CGRectMake(26.0, 508.0, 200.0, 28.0);
+    ageLabel.frame = CGRectMake(26.0, 406.0, 200.0, 28.0);
     [self.formContentView addSubview:ageLabel];
     
     self.ageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.ageButton.frame = CGRectMake(26.0, 556.0, 308.0, 51.0);
+    self.ageButton.frame = CGRectMake(26.0, 444.0, 308.0, 41.0);
     self.ageButton.backgroundColor = [UIColor colorWithRed:31.0 / 255.0 green:62.0 / 255.0 blue:102.0 / 255.0 alpha:1.0];
     self.ageButton.layer.cornerRadius = 11.0;
     self.ageButton.layer.masksToBounds = YES;
@@ -112,11 +112,11 @@
     [self.formContentView addSubview:self.ageButton];
     
     UIImageView *arrowImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalAgeArrow"]];
-    arrowImageView.frame = CGRectMake(278.0, 13.0, 24.0, 24.0);
+    arrowImageView.frame = CGRectMake(278.0, 8.5, 24.0, 24.0);
     arrowImageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.ageButton addSubview:arrowImageView];
     
-    UILabel *noticeLabel = [[UILabel alloc] initWithFrame:CGRectMake(38.0, 630.0, 264.0, 44.0)];
+    UILabel *noticeLabel = [[UILabel alloc] initWithFrame:CGRectMake(38.0, 505.0, 264.0, 44.0)];
     noticeLabel.text = @"* Access to Luket is restricted to users aged 18\nand above.";
     noticeLabel.numberOfLines = 2;
     noticeLabel.textAlignment = NSTextAlignmentCenter;
@@ -137,7 +137,7 @@
     CGFloat cardX = (viewWidth - cardWidth) / 2.0;
     CGFloat cardY = CGRectGetMaxY(self.topCardView.frame) + 0.0;
     
-    self.formContentView.frame = CGRectMake(cardX, cardY, cardWidth, cardHeight);
+    self.formContentView.frame = CGRectMake(20.0, cardY, topCardWidth, cardHeight);
     self.formCardImageView.frame = self.formContentView.bounds;
     self.nextButtonImageView.frame = CGRectMake((viewWidth - 318.0) / 2.0, CGRectGetMaxY(self.formContentView.frame) + 69.0, 318.0, 59.0);
 }
