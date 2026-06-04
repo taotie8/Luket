@@ -7,6 +7,7 @@
 
 #import "HomeViewController.h"
 #import "../Detail/DetailViewController.h"
+#import "../AISwimming/AISwimmingViewController.h"
 
 typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     HomeFeedModeTrending,
@@ -150,6 +151,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
     self.aiButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.aiButton setImage:[[UIImage imageNamed:@"HomeAISwimmingButton"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    [self.aiButton addTarget:self action:@selector(aiButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.aiButton];
 
     self.trendingButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -167,6 +169,12 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     self.feedMode = sender.tag == HomeFeedModeDiscover ? HomeFeedModeDiscover : HomeFeedModeTrending;
     [self updateTitleState];
     [self updateFeedTexts];
+}
+
+- (void)aiButtonTapped {
+    AISwimmingViewController *viewController = [[AISwimmingViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)updateTitleState {

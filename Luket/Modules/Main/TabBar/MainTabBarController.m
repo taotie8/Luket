@@ -7,6 +7,8 @@
 
 #import "MainTabBarController.h"
 #import "../Home/HomeViewController.h"
+#import "../Chatroom/ChatroomViewController.h"
+#import "../Post/PostViewController.h"
 
 @interface MainTabBarController ()
 
@@ -55,7 +57,7 @@
 
 - (void)configureViewControllers {
     UIViewController *swimming = [[HomeViewController alloc] init];
-    UIViewController *discover = [self placeholderControllerWithBackgroundColor:[UIColor colorWithRed:0.95 green:0.98 blue:1.0 alpha:1.0]];
+    UIViewController *discover = [[ChatroomViewController alloc] init];
     UIViewController *notifications = [self placeholderControllerWithBackgroundColor:[UIColor colorWithRed:0.95 green:0.98 blue:1.0 alpha:1.0]];
     UIViewController *profile = [self placeholderControllerWithBackgroundColor:[UIColor colorWithRed:0.95 green:0.98 blue:1.0 alpha:1.0]];
 
@@ -122,6 +124,10 @@
 
 - (void)createButtonTapped:(UIButton *)sender {
     sender.highlighted = NO;
+    
+    PostViewController *postViewController = [[PostViewController alloc] init];
+    postViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:postViewController animated:YES completion:nil];
 }
 
 - (void)updateSelectedTabAtIndex:(NSUInteger)index {

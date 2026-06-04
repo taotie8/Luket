@@ -133,14 +133,13 @@
     
     self.backgroundImageView.frame = self.view.bounds;
     
-    CGFloat topCardY = self.view.safeAreaInsets.top + 5.0;
-    CGFloat cardWidth = viewWidth - 40.0;
+    CGFloat cardWidth = viewWidth - 34.0;
     
-    CGFloat cardHeight = 467.0;
-    CGFloat cardX = (viewWidth - cardWidth) / 2.0;
-    CGFloat cardY = (viewHeight - cardHeight) / 2.0 - 10.0;
+    CGFloat cardHeight = 463.0;
+    CGFloat cardX = 17.0;
+    CGFloat cardY = (viewHeight - cardHeight) / 2.0;
     
-    self.cardContentView.frame = CGRectMake(20, cardY, cardWidth, cardHeight);
+    self.cardContentView.frame = CGRectMake(cardX, cardY, cardWidth, cardHeight);
     self.cardImageView.frame = self.cardContentView.bounds;
     self.welcomeImageView.frame = CGRectMake((cardWidth - 153.0) / 2.0, 65.0, 153.0, 60.0);
     self.emailTitleImageView.frame = CGRectMake((cardWidth - 184.0) / 2.0, CGRectGetMaxY(self.welcomeImageView.frame) + 36.0, 184.0, 22.0);
