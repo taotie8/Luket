@@ -4,12 +4,17 @@
 //
 
 #import "ChatroomViewController.h"
+#import "ChatroomDetailViewController.h"
 
 typedef NS_ENUM(NSUInteger, ChatroomSegment) {
     ChatroomSegmentForYou,
     ChatroomSegmentTrending,
     ChatroomSegmentFollowing
 };
+
+static CGFloat const ChatroomRoomCellHeight = 133.0;
+static CGFloat const ChatroomRoomCardHeight = 117.0;
+static CGFloat const ChatroomRoomAvatarSize = 117.0;
 
 @interface ChatroomRoomView : UIView
 
@@ -93,7 +98,7 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
     
     CGFloat width = CGRectGetWidth(self.bounds);
     CGFloat height = CGRectGetHeight(self.bounds);
-    CGFloat scale = width / 335.0;
+    CGFloat scale = 1.0;
     
     self.cardLayer.frame = self.bounds;
     self.cardLayer.path = [self cardPathWithWidth:width height:height scale:scale].CGPath;
@@ -102,33 +107,34 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
     backgroundPhotoView.frame = CGRectMake(119.0 * scale, 5.0 * scale, width - 134.0 * scale, height - 10.0 * scale);
     backgroundPhotoView.layer.cornerRadius = 10.0 * scale;
     
-    self.photoImageView.frame = CGRectMake(8.0 * scale, 6.0 * scale, 112.0 * scale, height - 12.0 * scale);
+    self.photoImageView.frame = CGRectMake(8.0 * scale, 0.0, ChatroomRoomAvatarSize, ChatroomRoomAvatarSize);
     self.photoImageView.layer.cornerRadius = 12.0 * scale;
     
     UIView *fadeView = [self viewWithTag:1002];
     fadeView.frame = CGRectMake(120.0 * scale, 6.0 * scale, width - 135.0 * scale, height - 12.0 * scale);
     
     UILabel *titleLabel = [self viewWithTag:1003];
-    titleLabel.frame = CGRectMake(134.0 * scale, 27.0 * scale, 128.0 * scale, 24.0 * scale);
+    titleLabel.frame = CGRectMake(CGRectGetMaxX(self.photoImageView.frame) + 8.0, 16.0, 128.0 * scale, 27.0);
     
     UILabel *subtitleLabel = [self viewWithTag:1004];
-    subtitleLabel.frame = CGRectMake(134.0 * scale, 67.0 * scale, 150.0 * scale, 18.0 * scale);
+    subtitleLabel.frame = CGRectMake(CGRectGetMaxX(self.photoImageView.frame) + 8.0, CGRectGetMaxY(titleLabel.frame) + 12.0, 150.0 * scale, 17.0);
     
     UIImageView *fireView = [self viewWithTag:1005];
-    fireView.frame = CGRectMake(256.0 * scale, 24.0 * scale, 32.0 * scale, 32.0 * scale);
+    fireView.frame = CGRectMake(256.0 * scale, CGRectGetMidY(titleLabel.frame) - 16.0 * scale, 32.0 * scale, 32.0 * scale);
     
     UILabel *heatLabel = [self viewWithTag:1006];
-    heatLabel.frame = CGRectMake(292.0 * scale, 31.0 * scale, 42.0 * scale, 18.0 * scale);
+    heatLabel.frame = CGRectMake(CGRectGetMaxX(fireView.frame) + 4.0 * scale, CGRectGetMidY(fireView.frame) - 9.0 * scale, 42.0 * scale, 18.0 * scale);
     
     for (NSInteger index = 0; index < 3; index++) {
         UIImageView *avatarView = [self viewWithTag:1010 + index];
-        avatarView.frame = CGRectMake((135.0 + 31.0 * index) * scale, 95.0 * scale, 26.0 * scale, 26.0 * scale);
-        avatarView.layer.cornerRadius = 13.0 * scale;
+        avatarView.frame = CGRectMake(CGRectGetMaxX(self.photoImageView.frame) + 8.0 + 32.0 * index, CGRectGetMaxY(subtitleLabel.frame) + 12.0, 24.0, 24.0);
+        avatarView.layer.cornerRadius = 12.0;
         avatarView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
     }
     
     UIImageView *bubbleView = [self viewWithTag:1020];
-    bubbleView.frame = CGRectMake(228.0 * scale, 90.0 * scale, 51.0 * scale, 34.0 * scale);
+    UIImageView *lastAvatarView = [self viewWithTag:1012];
+    bubbleView.frame = CGRectMake(CGRectGetMaxX(lastAvatarView.frame) + 8.0, CGRectGetMidY(lastAvatarView.frame) - 17.0 * scale, 51.0 * scale, 34.0 * scale);
 }
 
 - (void)configureWithIndex:(NSInteger)index {
@@ -202,7 +208,7 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
     CGFloat width = CGRectGetWidth(self.contentView.bounds);
     CGFloat scale = width / 375.0;
     CGFloat roomWidth = MIN(335.0 * scale, width - 40.0 * scale);
-    CGFloat roomHeight = 123.0 * scale;
+    CGFloat roomHeight = ChatroomRoomCardHeight;
     self.roomView.frame = CGRectMake((width - roomWidth) / 2.0, 0.0, roomWidth, roomHeight);
 }
 
@@ -270,59 +276,37 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
     
     UIButton *createButton = [UIButton buttonWithType:UIButtonTypeCustom];
     createButton.tag = 1003;
-    createButton.backgroundColor = [UIColor colorWithRed:0.0 green:139.0 / 255.0 blue:238.0 / 255.0 alpha:1.0];
-    createButton.layer.cornerRadius = 31.0;
-    createButton.layer.masksToBounds = YES;
-    UIImage *createImage = [UIImage systemImageNamed:@"plus.rectangle.fill"];
-    UIImageView *createIconView = [[UIImageView alloc] initWithImage:[createImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    createIconView.tag = 2001;
-    createIconView.tintColor = UIColor.whiteColor;
-    createIconView.contentMode = UIViewContentModeScaleAspectFit;
-    [createButton addSubview:createIconView];
-    
-    UILabel *createLabel = [[UILabel alloc] init];
-    createLabel.tag = 2002;
-    createLabel.text = @"Create";
-    createLabel.textColor = UIColor.whiteColor;
-    createLabel.font = [UIFont fontWithName:@"PangMenZhengDao" size:16.0] ?: [UIFont systemFontOfSize:16.0 weight:UIFontWeightBold];
-    [createButton addSubview:createLabel];
+    [createButton setImage:[[UIImage imageNamed:@"ChatroomCreateButton"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [self.view addSubview:createButton];
 }
 
 - (void)layoutViews {
     CGFloat width = CGRectGetWidth(self.view.bounds);
     CGFloat height = CGRectGetHeight(self.view.bounds);
-    CGFloat scale = width / 375.0;
+    CGFloat scale = 1.0;
     
     UIImageView *headerWaveView = [self.view viewWithTag:1001];
-    headerWaveView.frame = CGRectMake(0.0, 0.0, width, 228.0 * scale);
+    headerWaveView.frame = CGRectMake(0.0, -107.0, width, 278);
     
     UIImageView *titleView = [self.view viewWithTag:1002];
-    titleView.frame = CGRectMake(24.0 * scale, 80.0 * scale, 93.0 * scale, 22.0 * scale);
+    titleView.frame = CGRectMake(20, 56, 93.0, 22.0);
     
     NSArray<NSValue *> *buttonFrames = @[
-        [NSValue valueWithCGRect:CGRectMake(25.0 * scale, 127.0 * scale, 96.0 * scale, 42.0 * scale)],
-        [NSValue valueWithCGRect:CGRectMake(126.0 * scale, 127.0 * scale, 106.0 * scale, 40.0 * scale)],
-        [NSValue valueWithCGRect:CGRectMake(244.0 * scale, 127.0 * scale, 111.0 * scale, 40.0 * scale)]
+        [NSValue valueWithCGRect:CGRectMake(20.0 * scale, 94.0 * scale, 94.0 * scale, 40.0 * scale)],
+        [NSValue valueWithCGRect:CGRectMake(128.0 * scale, 94.0 * scale, 104.0 * scale, 40.0 * scale)],
+        [NSValue valueWithCGRect:CGRectMake(246.0 * scale, 94.0 * scale, 109.0 * scale, 40.0 * scale)]
     ];
     for (NSInteger index = 0; index < self.segmentButtons.count; index++) {
         self.segmentButtons[index].frame = buttonFrames[index].CGRectValue;
     }
     
-    CGFloat listY = 239.0 * scale;
+    CGFloat listY = 182.0 * scale;
     self.tableView.frame = CGRectMake(0.0, listY, width, height - listY);
     self.tableView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 112.0, 0.0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
     
     UIButton *createButton = [self.view viewWithTag:1003];
-    createButton.frame = CGRectMake(width - 136.0 * scale, height - self.view.safeAreaInsets.bottom - 145.0 * scale, 120.0 * scale, 62.0 * scale);
-    createButton.layer.cornerRadius = CGRectGetHeight(createButton.bounds) / 2.0;
-    
-    UIImageView *createIconView = [createButton viewWithTag:2001];
-    createIconView.frame = CGRectMake(24.0 * scale, 21.0 * scale, 24.0 * scale, 20.0 * scale);
-    
-    UILabel *createLabel = [createButton viewWithTag:2002];
-    createLabel.frame = CGRectMake(58.0 * scale, 0.0, 58.0 * scale, CGRectGetHeight(createButton.bounds));
+    createButton.frame = CGRectMake(width - 136.0 * scale, height - self.view.safeAreaInsets.bottom - 145.0 * scale, 118.0 * scale, 55.0 * scale);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -336,8 +320,13 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    CGFloat scale = CGRectGetWidth(tableView.bounds) / 375.0;
-    return 136.0 * scale;
+    return ChatroomRoomCellHeight;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    ChatroomDetailViewController *viewController = [[ChatroomDetailViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)segmentButtonTapped:(UIButton *)sender {

@@ -5,6 +5,7 @@
 
 #import "AISwimmingViewController.h"
 #import "AISwimmingResultViewController.h"
+#import "AISwimmingHistoryViewController.h"
 
 @interface AISwimmingViewController () <UITextViewDelegate>
 
@@ -62,10 +63,11 @@
     titleLabel.font = [self titleFontWithSize:20.0];
     [self.topCardView addSubview:titleLabel];
     
-    UIImageView *historyIconView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"AISwimmingHistoryIcon"]];
-    historyIconView.tag = 1001;
-    historyIconView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.topCardView addSubview:historyIconView];
+    UIButton *historyButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    historyButton.tag = 1001;
+    [historyButton setImage:[[UIImage imageNamed:@"AISwimmingHistoryIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    [historyButton addTarget:self action:@selector(historyButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+    [self.topCardView addSubview:historyButton];
 }
 
 - (void)setupFormCard {
@@ -83,20 +85,20 @@
     [self.formContentView addSubview:requirementTitleLabel];
     
     self.requirementTextView = [[UITextView alloc] init];
-    self.requirementTextView.backgroundColor = [self inputColor];
+    self.requirementTextView.backgroundColor = UIColor.clearColor;
     self.requirementTextView.layer.cornerRadius = 11.0;
     self.requirementTextView.layer.masksToBounds = YES;
     self.requirementTextView.delegate = self;
     self.requirementTextView.text = @"Please describe your expectations for an\nideal cycling outfit....";
-    self.requirementTextView.textColor = [UIColor colorWithWhite:1.0 alpha:0.35];
+    self.requirementTextView.textColor = [UIColor colorWithWhite:1.0 alpha:1.0];
     self.requirementTextView.font = [UIFont systemFontOfSize:16.0];
-    self.requirementTextView.textContainerInset = UIEdgeInsetsMake(15.0, 14.0, 15.0, 96.0);
+    self.requirementTextView.textContainerInset = UIEdgeInsetsMake(15.0, 19.0, 15.0, 96.0);
     [self.formContentView addSubview:self.requirementTextView];
     
     UIImageView *decorationView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"AISwimmingInputDecoration"]];
     decorationView.tag = 1004;
     decorationView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.formContentView addSubview:decorationView];
+    [self.formContentView insertSubview:decorationView belowSubview:self.requirementTextView];
     
     UILabel *priceTitleLabel = [self titleLabelWithText:@"Price range"];
     priceTitleLabel.tag = 1005;
@@ -144,8 +146,8 @@
     CGFloat inputOffset = self.keyboardHeight > 0.0 ? -self.keyboardHeight * 0.25 : 0.0;
     
     self.topCardView.frame = CGRectMake(20.0, topY, width - 40.0, 56.0);
-    UIImageView *historyIconView = [self.topCardView viewWithTag:1001];
-    historyIconView.frame = CGRectMake(CGRectGetWidth(self.topCardView.bounds) - 50.0, 12.0, 32.0, 32.0);
+    UIButton *historyButton = [self.topCardView viewWithTag:1001];
+    historyButton.frame = CGRectMake(CGRectGetWidth(self.topCardView.bounds) - 50.0, 12.0, 32.0, 32.0);
     
     CGFloat cardWidth = width - 40.0;
     CGFloat cardHeight = 522.0;
@@ -202,6 +204,12 @@
 - (void)creditButtonTapped {
     [self.view endEditing:YES];
     [self showDiamondDialogWithEnoughDiamonds:[self hasEnoughDiamondsForAI]];
+}
+
+- (void)historyButtonTapped {
+    AISwimmingHistoryViewController *viewController = [[AISwimmingHistoryViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)showDiamondDialogWithEnoughDiamonds:(BOOL)enoughDiamonds {
