@@ -8,7 +8,9 @@
 #import "MainTabBarController.h"
 #import "../Home/HomeViewController.h"
 #import "../Chatroom/ChatroomViewController.h"
+#import "../Message/MessageViewController.h"
 #import "../Post/PostViewController.h"
+#import "../Profile/MyProfileViewController.h"
 
 @interface MainTabBarController ()
 
@@ -24,7 +26,7 @@
     [super viewDidLoad];
 
     self.tabBar.hidden = YES;
-    self.view.backgroundColor = [self mainBackgroundColor];
+//    self.view.backgroundColor = [self mainBackgroundColor];
     [self configureViewControllers];
     [self configureTabBar];
     [self updateSelectedTabAtIndex:0];
@@ -58,8 +60,8 @@
 - (void)configureViewControllers {
     UIViewController *swimming = [[HomeViewController alloc] init];
     UIViewController *discover = [[ChatroomViewController alloc] init];
-    UIViewController *notifications = [self placeholderControllerWithBackgroundColor:[UIColor colorWithRed:0.95 green:0.98 blue:1.0 alpha:1.0]];
-    UIViewController *profile = [self placeholderControllerWithBackgroundColor:[UIColor colorWithRed:0.95 green:0.98 blue:1.0 alpha:1.0]];
+    UIViewController *notifications = [[MessageViewController alloc] init];
+    UIViewController *profile = [[MyProfileViewController alloc] init];
 
     self.viewControllers = @[swimming, discover, notifications, profile];
 }

@@ -8,6 +8,7 @@
 #import "HomeViewController.h"
 #import "../Detail/DetailViewController.h"
 #import "../AISwimming/AISwimmingViewController.h"
+#import "../Profile/UserProfileViewController.h"
 
 typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     HomeFeedModeTrending,
@@ -15,6 +16,8 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 };
 
 @interface HomeFeedCell : UICollectionViewCell
+
+@property (nonatomic, copy) void (^avatarTapHandler)(void);
 
 - (void)configureWithText:(NSString *)text index:(NSUInteger)index;
 
@@ -58,6 +61,11 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
         self.avatarImageView.clipsToBounds = YES;
         self.avatarImageView.layer.cornerRadius = 12.0;
         [self.containerView addSubview:self.avatarImageView];
+        
+        UIButton *avatarButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        avatarButton.frame = self.avatarImageView.frame;
+        [avatarButton addTarget:self action:@selector(avatarButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        [self.containerView addSubview:avatarButton];
 
         self.textLabel = [[UILabel alloc] initWithFrame:CGRectMake(51.0, 136.0, 92.0, 38.0)];
         self.textLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightMedium];
@@ -66,6 +74,11 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
         [self.containerView addSubview:self.textLabel];
     }
     return self;
+}
+
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    self.avatarTapHandler = nil;
 }
 
 - (void)layoutSubviews {
@@ -80,6 +93,12 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (void)configureWithText:(NSString *)text index:(NSUInteger)index {
     self.textLabel.text = text;
     self.photoImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+}
+
+- (void)avatarButtonTapped {
+    if (self.avatarTapHandler) {
+        self.avatarTapHandler();
+    }
 }
 
 @end
@@ -214,6 +233,11 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     HomeFeedCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"HomeFeedCell" forIndexPath:indexPath];
     [cell configureWithText:self.feedTexts[indexPath.item] index:indexPath.item];
+    
+    __weak typeof(self) weakSelf = self;
+    cell.avatarTapHandler = ^{
+        [weakSelf presentUserProfileViewController];
+    };
     return cell;
 }
 
@@ -221,6 +245,12 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     DetailViewController *detailViewController = [[DetailViewController alloc] init];
     detailViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:detailViewController animated:YES completion:nil];
+}
+
+- (void)presentUserProfileViewController {
+    UserProfileViewController *viewController = [[UserProfileViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {

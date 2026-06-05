@@ -6,6 +6,7 @@
 //
 
 #import "DetailViewController.h"
+#import "../Profile/UserProfileViewController.h"
 
 @interface DetailViewController () <UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate>
 
@@ -81,6 +82,9 @@
     self.nameLabel.frame = CGRectMake(112.0, 15.0, CGRectGetWidth(self.nameLabel.bounds), 26.0);
     self.followButton.frame = CGRectMake(CGRectGetMaxX(self.nameLabel.frame) + 10.0, 16.0, 36.0, 24.0);
     self.moreButton.frame = CGRectMake(CGRectGetWidth(self.topBarView.bounds) - 12.0 - 32.0, 13.0, 32.0, 32.0);
+    
+    UIButton *avatarButton = [self.topBarView viewWithTag:1010];
+    avatarButton.frame = CGRectMake(60.0, 8.0, 40.0, 40.0);
 
     self.headerContentView.frame = CGRectMake(0.0, 0.0, width, 700.0 * scale);
 
@@ -153,6 +157,12 @@
     avatarImageView.clipsToBounds = YES;
     avatarImageView.layer.cornerRadius = 20;
     [self.topBarView addSubview:avatarImageView];
+    
+    UIButton *avatarButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    avatarButton.tag = 1010;
+    avatarButton.frame = avatarImageView.frame;
+    [avatarButton addTarget:self action:@selector(userAvatarButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+    [self.topBarView addSubview:avatarButton];
 
     self.nameLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     self.nameLabel.text = @"Freya";
@@ -287,6 +297,12 @@
 }
 
 - (void)moreButtonTapped {
+}
+
+- (void)userAvatarButtonTapped {
+    UserProfileViewController *viewController = [[UserProfileViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {

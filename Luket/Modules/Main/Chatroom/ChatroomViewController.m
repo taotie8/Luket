@@ -4,6 +4,7 @@
 //
 
 #import "ChatroomViewController.h"
+#import "ChatroomCreateViewController.h"
 #import "ChatroomDetailViewController.h"
 
 typedef NS_ENUM(NSUInteger, ChatroomSegment) {
@@ -277,6 +278,7 @@ static CGFloat const ChatroomRoomAvatarSize = 117.0;
     UIButton *createButton = [UIButton buttonWithType:UIButtonTypeCustom];
     createButton.tag = 1003;
     [createButton setImage:[[UIImage imageNamed:@"ChatroomCreateButton"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    [createButton addTarget:self action:@selector(createButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:createButton];
 }
 
@@ -325,6 +327,12 @@ static CGFloat const ChatroomRoomAvatarSize = 117.0;
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     ChatroomDetailViewController *viewController = [[ChatroomDetailViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (void)createButtonTapped {
+    ChatroomCreateViewController *viewController = [[ChatroomCreateViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
 }
