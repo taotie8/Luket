@@ -8,6 +8,8 @@
 #import "ViewController.h"
 #import "SignUpViewController.h"
 #import "ForgotPasswordViewController.h"
+#import "../Main/Data/Service/LuketDataService.h"
+#import "../Main/TabBar/MainTabBarController.h"
 
 @interface ViewController () <UITextFieldDelegate>
 
@@ -29,7 +31,9 @@
 @property (nonatomic, strong) UITextView *eulaTextView;
 @property (nonatomic, strong) UIImageView *eulaAgreeButtonImageView;
 @property (nonatomic, strong) UIButton *eulaCloseButton;
+@property (nonatomic, strong) UIActivityIndicatorView *loginIndicatorView;
 @property (nonatomic, weak) UITextField *activeTextField;
+@property (nonatomic, assign) BOOL loggingIn;
 
 @end
 
@@ -83,8 +87,14 @@
     [self.loginButtonImageView addGestureRecognizer:loginTap];
     [self.cardContentView addSubview:self.loginButtonImageView];
     
+    self.loginIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
+    self.loginIndicatorView.hidesWhenStopped = YES;
+    self.loginIndicatorView.color = UIColor.whiteColor;
+    [self.cardContentView addSubview:self.loginIndicatorView];
+    
     self.createAccountImageView = [self imageViewWithName:@"LoginCreateAccountText"];
     self.createAccountImageView.userInteractionEnabled = YES;
+    self.createAccountImageView.contentMode = UIViewContentModeScaleAspectFit;
     UITapGestureRecognizer *signUpTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(signUpTapped)];
     [self.createAccountImageView addGestureRecognizer:signUpTap];
     [self.cardContentView addSubview:self.createAccountImageView];
@@ -155,6 +165,7 @@
     self.passwordTextField.layer.cornerRadius = 11.0;
     self.forgotPasswordImageView.frame = CGRectMake(cardWidth - 16.0 - 104.0, 315.0, 104.0, 17.0);
     self.loginButtonImageView.frame = CGRectMake((cardWidth - 318.0) / 2.0, 356.0, 318.0, 59.0);
+    self.loginIndicatorView.center = CGPointMake(CGRectGetMidX(self.loginButtonImageView.frame), CGRectGetMidY(self.loginButtonImageView.frame));
     self.createAccountImageView.frame = CGRectMake((cardWidth - 275.0) / 2.0, 422.0, 275.0, 30.0);
     
     CGFloat agreementY = CGRectGetMaxY(self.cardContentView.frame) + 35.0;
@@ -172,6 +183,40 @@
         [self showEULAView];
         return;
     }
+    
+    if (self.loggingIn) {
+        return;
+    }
+    
+    NSString *email = [self trimmedText:self.emailTextField.text];
+    NSString *password = [self trimmedText:self.passwordTextField.text];
+    if (email.length == 0) {
+        [self showAlertWithMessage:@"Please enter email address."];
+        return;
+    }
+    if (password.length == 0) {
+        [self showAlertWithMessage:@"Please enter password."];
+        return;
+    }
+    
+    [self.view endEditing:YES];
+    [self setLoggingIn:YES];
+    
+    __weak typeof(self) weakSelf = self;
+    [[LuketDataService sharedService] loginWithEmail:email password:password completion:^(LuketUser * _Nullable user, NSError * _Nullable error) {
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) {
+            return;
+        }
+        
+        [self setLoggingIn:NO];
+        if (error || !user) {
+            [self showAlertWithMessage:error.localizedDescription ?: @"Login failed."];
+            return;
+        }
+        
+        [self enterMainPage];
+    }];
 }
 
 - (void)signUpTapped {
@@ -184,6 +229,44 @@
     ForgotPasswordViewController *viewController = [[ForgotPasswordViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (void)setLoggingIn:(BOOL)loggingIn {
+    _loggingIn = loggingIn;
+    self.loginButtonImageView.userInteractionEnabled = !loggingIn;
+    self.loginButtonImageView.alpha = loggingIn ? 0.72 : 1.0;
+    if (loggingIn) {
+        [self.loginIndicatorView startAnimating];
+    } else {
+        [self.loginIndicatorView stopAnimating];
+    }
+}
+
+- (NSString *)trimmedText:(NSString *)text {
+    return [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] ?: @"";
+}
+
+- (void)enterMainPage {
+    UIWindow *window = self.view.window;
+    MainTabBarController *tabBarController = [[MainTabBarController alloc] init];
+    if (!window) {
+        tabBarController.modalPresentationStyle = UIModalPresentationFullScreen;
+        [self presentViewController:tabBarController animated:YES completion:nil];
+        return;
+    }
+    
+    [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+        window.rootViewController = tabBarController;
+    } completion:nil];
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)setupEULAView {

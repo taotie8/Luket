@@ -7,7 +7,7 @@
 
 #import "SceneDelegate.h"
 #import "../Modules/Main/TabBar/MainTabBarController.h"
-
+#import "ViewController.h"
 @interface SceneDelegate ()
 
 @end
@@ -22,7 +22,7 @@
 
     UIWindowScene *windowScene = (UIWindowScene *)scene;
     self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
-    self.window.rootViewController = [[MainTabBarController alloc] init];
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:ViewController.new];//[[MainTabBarController alloc] init];
     [self.window makeKeyAndVisible];
 }
 
