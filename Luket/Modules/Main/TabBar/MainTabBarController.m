@@ -11,6 +11,7 @@
 #import "../Message/MessageViewController.h"
 #import "../Post/PostViewController.h"
 #import "../Profile/MyProfileViewController.h"
+#import "../Data/Service/LuketDataService.h"
 
 @interface MainTabBarController ()
 
@@ -30,6 +31,7 @@
     [self configureViewControllers];
     [self configureTabBar];
     [self updateSelectedTabAtIndex:0];
+    [self fetchAndLogGlobalData];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -140,6 +142,20 @@
     self.selectedIndex = index;
     [self.tabButtons enumerateObjectsUsingBlock:^(UIButton *button, NSUInteger buttonIndex, BOOL *stop) {
         button.selected = buttonIndex == index;
+    }];
+}
+
+- (void)fetchAndLogGlobalData {
+    [[LuketDataService sharedService] fetchGlobalDataWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"[Luket] Fetch global data failed: %@", error.localizedDescription);
+            return;
+        }
+
+        NSDictionary *dictionary = [data dictionaryRepresentation] ?: @{};
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary options:NSJSONWritingPrettyPrinted error:nil];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLog(@"[Luket] Global data:\n%@", jsonString ?: dictionary);
     }];
 }
 

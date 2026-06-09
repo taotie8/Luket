@@ -6,8 +6,10 @@
 #import "SettingViewController.h"
 #import "../Agreement/AgreementViewController.h"
 #import "../Common/AccountConfirmDialogView.h"
+#import "../Data/Service/LuketDataService.h"
 #import "../Feedback/FeedbackViewController.h"
 #import "../Profile/UserList/ProfileUserListViewController.h"
+#import "../../Login/ViewController.h"
 
 typedef NS_ENUM(NSInteger, SettingViewTag) {
     SettingViewTagTopBar = 1001,
@@ -178,6 +180,28 @@ typedef NS_ENUM(NSInteger, SettingViewTag) {
     AccountConfirmDialogView *dialogView = [[AccountConfirmDialogView alloc] initWithTitle:@"Log out?"
                                                                                    message:@"You can log in again anytime."
                                                                           confirmImageName:@"SettingsLogoutButton"];
+    __weak typeof(self) weakSelf = self;
+    dialogView.confirmHandler = ^{
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) {
+            return;
+        }
+
+        [[LuketDataService sharedService] clearAuthToken];
+
+        UIWindow *window = self.view.window;
+        ViewController *loginViewController = [[ViewController alloc] init];
+        UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:loginViewController];
+        if (!window) {
+            navigationController.modalPresentationStyle = UIModalPresentationFullScreen;
+            [self presentViewController:navigationController animated:YES completion:nil];
+            return;
+        }
+
+        [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            window.rootViewController = navigationController;
+        } completion:nil];
+    };
     [dialogView showInView:self.view];
 }
 

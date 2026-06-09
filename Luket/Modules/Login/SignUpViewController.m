@@ -4,7 +4,8 @@
 //
 
 #import "SignUpViewController.h"
-#import "PersonalViewController.h"
+#import "../Main/Data/Service/LuketDataService.h"
+#import "../Main/TabBar/MainTabBarController.h"
 
 @interface SignUpViewController () <UITextFieldDelegate>
 
@@ -20,6 +21,7 @@
 @property (nonatomic, strong) UITextField *passwordAgainTextField;
 @property (nonatomic, strong) UIImageView *signUpButtonImageView;
 @property (nonatomic, weak) UITextField *activeTextField;
+@property (nonatomic, assign) BOOL signingUp;
 
 @end
 
@@ -125,7 +127,6 @@
     self.titleLabel.frame = CGRectMake(63.0, 0.0, 180.0, 52.0);
     
     CGFloat cardWidth = 340.0;
-    CGFloat cardX = (viewWidth - cardWidth) / 2.0;
     CGFloat cardY = 138.0;
     
     self.formContentView.frame = CGRectMake(20.0, cardY, topCardWidth, 447.0);
@@ -143,9 +144,77 @@
 }
 
 - (void)signUpButtonTapped {
-    PersonalViewController *viewController = [[PersonalViewController alloc] init];
-    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
-    [self presentViewController:viewController animated:YES completion:nil];
+    if (self.signingUp) {
+        return;
+    }
+
+    NSString *email = [self trimmedText:self.emailTextField.text];
+    NSString *password = [self trimmedText:self.passwordTextField.text];
+    NSString *passwordAgain = [self trimmedText:self.passwordAgainTextField.text];
+    if (email.length == 0) {
+        [self showAlertWithMessage:@"Please enter email address."];
+        return;
+    }
+    if (password.length == 0) {
+        [self showAlertWithMessage:@"Please enter password."];
+        return;
+    }
+    if (![password isEqualToString:passwordAgain]) {
+        [self showAlertWithMessage:@"Passwords do not match."];
+        return;
+    }
+
+    [self.view endEditing:YES];
+    [self setSigningUp:YES];
+
+    __weak typeof(self) weakSelf = self;
+    [[LuketDataService sharedService] registerWithEmail:email password:password completion:^(LuketUser * _Nullable user, NSError * _Nullable error) {
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) {
+            return;
+        }
+
+        [self setSigningUp:NO];
+        if (error) {
+            [self showAlertWithMessage:error.localizedDescription ?: @"Sign up failed."];
+            return;
+        }
+
+        [self enterMainPage];
+    }];
+}
+
+- (NSString *)trimmedText:(NSString *)text {
+    return [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] ?: @"";
+}
+
+- (void)setSigningUp:(BOOL)signingUp {
+    _signingUp = signingUp;
+    self.signUpButtonImageView.userInteractionEnabled = !signingUp;
+    self.signUpButtonImageView.alpha = signingUp ? 0.72 : 1.0;
+}
+
+- (void)enterMainPage {
+    UIWindow *window = self.view.window;
+    MainTabBarController *tabBarController = [[MainTabBarController alloc] init];
+    if (!window) {
+        tabBarController.modalPresentationStyle = UIModalPresentationFullScreen;
+        [self presentViewController:tabBarController animated:YES completion:nil];
+        return;
+    }
+
+    [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+        window.rootViewController = tabBarController;
+    } completion:nil];
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)setupKeyboardHandling {

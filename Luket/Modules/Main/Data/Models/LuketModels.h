@@ -25,6 +25,7 @@ FOUNDATION_EXPORT LuketPostMediaType const LuketPostMediaTypeImage;
 @property (nonatomic, copy) NSString *nickname;
 @property (nonatomic, copy) NSString *avatarUrl;
 @property (nonatomic, assign) NSInteger age;
+@property (nonatomic, copy) NSString *birthday;
 @property (nonatomic, copy) NSString *gender;
 @property (nonatomic, copy) NSString *email;
 @property (nonatomic, copy) NSString *password;

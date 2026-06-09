@@ -9,6 +9,8 @@
 #import "../Detail/DetailViewController.h"
 #import "../AISwimming/AISwimmingViewController.h"
 #import "../Profile/UserProfileViewController.h"
+#import "../Data/Service/LuketDataService.h"
+#import "../Data/Network/LuketAPIClient.h"
 
 typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     HomeFeedModeTrending,
@@ -19,7 +21,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
 @property (nonatomic, copy) void (^avatarTapHandler)(void);
 
-- (void)configureWithText:(NSString *)text index:(NSUInteger)index;
+- (void)configureWithPost:(LuketPost *)post index:(NSUInteger)index;
 
 @end
 
@@ -27,8 +29,10 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
 @property (nonatomic, strong) UIView *containerView;
 @property (nonatomic, strong) UIImageView *photoImageView;
+@property (nonatomic, strong) UIImageView *playIconImageView;
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *textLabel;
+@property (nonatomic, copy) NSString *representedImageIdentifier;
 
 @end
 
@@ -55,6 +59,13 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
         self.photoImageView.layer.cornerRadius = 23.0;
         [self.containerView addSubview:self.photoImageView];
 
+        self.playIconImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeVideoPlayIcon"]];
+        self.playIconImageView.frame = CGRectMake(0.0, 0.0, 44.0, 44.0);
+        self.playIconImageView.center = CGPointMake(CGRectGetMidX(self.photoImageView.frame), CGRectGetMidY(self.photoImageView.frame));
+        self.playIconImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.playIconImageView.hidden = YES;
+        [self.containerView addSubview:self.playIconImageView];
+
         self.avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
         self.avatarImageView.frame = CGRectMake(15.0, 138.0, 24.0, 24.0);
         self.avatarImageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -79,6 +90,10 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (void)prepareForReuse {
     [super prepareForReuse];
     self.avatarTapHandler = nil;
+    self.representedImageIdentifier = nil;
+    self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
+    self.photoImageView.transform = CGAffineTransformIdentity;
+    self.playIconImageView.hidden = YES;
 }
 
 - (void)layoutSubviews {
@@ -90,9 +105,196 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     self.containerView.transform = CGAffineTransformMakeScale(scale, scale);
 }
 
-- (void)configureWithText:(NSString *)text index:(NSUInteger)index {
-    self.textLabel.text = text;
-    self.photoImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+- (void)configureWithPost:(LuketPost *)post index:(NSUInteger)index {
+    (void)index;
+    self.textLabel.text = post.content.length > 0 ? post.content : @"";
+    self.photoImageView.transform = CGAffineTransformIdentity;
+
+    BOOL isVideo = [[post.mediaType lowercaseString] isEqualToString:LuketPostMediaTypeVideo];
+    self.playIconImageView.hidden = !isVideo;
+
+    NSString *firstMediaIdentifier = post.mediaUrls.firstObject;
+    NSString *coverIdentifier = nil;
+    if (isVideo) {
+        coverIdentifier = post.coverUrl.length > 0 ? post.coverUrl : firstMediaIdentifier;
+    } else {
+        coverIdentifier = firstMediaIdentifier.length > 0 ? firstMediaIdentifier : post.coverUrl;
+    }
+    [self setCoverImageWithIdentifier:coverIdentifier];
+}
+
+- (void)setCoverImageWithIdentifier:(NSString *)identifier {
+    NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    self.representedImageIdentifier = trimmedIdentifier ?: @"";
+
+    UIImage *localImage = [self localImageWithIdentifier:trimmedIdentifier];
+    if (localImage) {
+        self.photoImageView.image = localImage;
+        return;
+    }
+
+    self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
+
+    NSString *expectedIdentifier = self.representedImageIdentifier.copy;
+    NSURL *imageURL = [self directImageURLWithIdentifier:trimmedIdentifier];
+    if (!imageURL) {
+        [self loadMediaFileWithIdentifier:trimmedIdentifier expectedIdentifier:expectedIdentifier];
+        return;
+    }
+
+    NSLog(@"[Luket] Home media image URL: %@", imageURL.absoluteString);
+    [self loadImageWithURL:imageURL expectedIdentifier:expectedIdentifier];
+}
+
+- (void)loadImageWithURL:(NSURL *)imageURL expectedIdentifier:(NSString *)expectedIdentifier {
+    __weak typeof(self) weakSelf = self;
+    NSURLSessionDataTask *task = [NSURLSession.sharedSession dataTaskWithURL:imageURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        (void)response;
+        if (error || data.length == 0) {
+            return;
+        }
+
+        UIImage *remoteImage = [UIImage imageWithData:data];
+        if (!remoteImage) {
+            return;
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf || ![strongSelf.representedImageIdentifier isEqualToString:expectedIdentifier]) {
+                return;
+            }
+            strongSelf.photoImageView.image = remoteImage;
+        });
+    }];
+    [task resume];
+}
+
+- (void)loadMediaFileWithIdentifier:(NSString *)identifier expectedIdentifier:(NSString *)expectedIdentifier {
+    if (identifier.length == 0) {
+        return;
+    }
+
+    [[LuketAPIClient sharedClient] getPath:@"api/file/download" parameters:@{@"fileName": identifier} completion:^(id responseObject, NSError *error) {
+        if (error) {
+            NSLog(@"[Luket] Home media file load failed: %@", error.localizedDescription);
+            return;
+        }
+
+        NSString *mediaString = [self mediaStringFromDownloadResponse:responseObject];
+        UIImage *image = [self imageFromMediaString:mediaString];
+        if (image) {
+            if (![self.representedImageIdentifier isEqualToString:expectedIdentifier]) {
+                return;
+            }
+            self.photoImageView.image = image;
+            return;
+        }
+
+        NSURL *imageURL = [self directImageURLWithIdentifier:mediaString];
+        if (imageURL) {
+            NSLog(@"[Luket] Home media image URL: %@", imageURL.absoluteString);
+            [self loadImageWithURL:imageURL expectedIdentifier:expectedIdentifier];
+            return;
+        }
+
+        if ([responseObject isKindOfClass:NSDictionary.class]) {
+            NSDictionary *dictionary = (NSDictionary *)responseObject;
+            NSLog(@"[Luket] Home media file response: %@", dictionary[@"msg"] ?: dictionary);
+        }
+    }];
+}
+
+- (NSString *)mediaStringFromDownloadResponse:(id)responseObject {
+    if ([responseObject isKindOfClass:NSString.class]) {
+        return responseObject;
+    }
+
+    if (![responseObject isKindOfClass:NSDictionary.class]) {
+        return @"";
+    }
+
+    NSDictionary *dictionary = (NSDictionary *)responseObject;
+    id data = dictionary[@"data"];
+    if ([data isKindOfClass:NSString.class]) {
+        return data;
+    }
+
+    if (![data isKindOfClass:NSDictionary.class]) {
+        return @"";
+    }
+
+    NSDictionary *dataDictionary = (NSDictionary *)data;
+    NSArray<NSString *> *keys = @[@"url", @"fileUrl", @"downloadUrl", @"path", @"filePath"];
+    for (NSString *key in keys) {
+        id value = dataDictionary[key];
+        if ([value isKindOfClass:NSString.class] && [value length] > 0) {
+            return value;
+        }
+    }
+    return @"";
+}
+
+- (UIImage *)imageFromMediaString:(NSString *)mediaString {
+    if (mediaString.length == 0 || [mediaString hasPrefix:@"http://"] || [mediaString hasPrefix:@"https://"]) {
+        return nil;
+    }
+
+    NSString *base64String = mediaString;
+    NSRange commaRange = [base64String rangeOfString:@","];
+    if ([base64String hasPrefix:@"data:image"] && commaRange.location != NSNotFound) {
+        base64String = [base64String substringFromIndex:commaRange.location + 1];
+    }
+
+    NSData *imageData = [[NSData alloc] initWithBase64EncodedString:base64String options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    return imageData.length > 0 ? [UIImage imageWithData:imageData] : nil;
+}
+
+- (UIImage *)localImageWithIdentifier:(NSString *)identifier {
+    if (identifier.length == 0) {
+        return nil;
+    }
+
+    UIImage *image = [UIImage imageNamed:identifier];
+    if (image) {
+        return image;
+    }
+
+    NSString *imageNameWithoutExtension = identifier.stringByDeletingPathExtension;
+    if (imageNameWithoutExtension.length > 0 && ![imageNameWithoutExtension isEqualToString:identifier]) {
+        image = [UIImage imageNamed:imageNameWithoutExtension];
+        if (image) {
+            return image;
+        }
+    }
+
+    NSString *bundlePath = [NSBundle.mainBundle pathForResource:identifier ofType:nil];
+    if (!bundlePath && identifier.lastPathComponent.length > 0) {
+        bundlePath = [NSBundle.mainBundle pathForResource:identifier.lastPathComponent ofType:nil];
+    }
+    return bundlePath.length > 0 ? [UIImage imageWithContentsOfFile:bundlePath] : nil;
+}
+
+- (NSURL *)directImageURLWithIdentifier:(NSString *)identifier {
+    if (identifier.length == 0) {
+        return nil;
+    }
+
+    if ([identifier hasPrefix:@"http://"] || [identifier hasPrefix:@"https://"]) {
+        return [NSURL URLWithString:identifier];
+    }
+
+    NSString *baseURLString = LuketAPIClient.sharedClient.baseURLString.length > 0 ? LuketAPIClient.sharedClient.baseURLString : @"https://dev.chavytogo.com/";
+    if (![baseURLString hasSuffix:@"/"]) {
+        baseURLString = [baseURLString stringByAppendingString:@"/"];
+    }
+
+    if ([identifier hasPrefix:@"/"]) {
+        NSURL *baseURL = [NSURL URLWithString:baseURLString];
+        return [NSURL URLWithString:[identifier substringFromIndex:1] relativeToURL:baseURL].absoluteURL;
+    }
+
+    return nil;
 }
 
 - (void)avatarButtonTapped {
@@ -110,7 +312,8 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 @property (nonatomic, strong) UIButton *aiButton;
 @property (nonatomic, strong) UIButton *trendingButton;
 @property (nonatomic, strong) UIButton *discoverButton;
-@property (nonatomic, copy) NSArray<NSString *> *feedTexts;
+@property (nonatomic, copy) NSArray<LuketPost *> *posts;
+@property (nonatomic, copy) NSArray<LuketPost *> *visiblePosts;
 @property (nonatomic, assign) HomeFeedMode feedMode;
 
 @end
@@ -125,7 +328,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self configureCollectionView];
     [self configureHomeContent];
     [self updateTitleState];
-    [self updateFeedTexts];
+    [self loadPosts];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -187,7 +390,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (void)titleButtonTapped:(UIButton *)sender {
     self.feedMode = sender.tag == HomeFeedModeDiscover ? HomeFeedModeDiscover : HomeFeedModeTrending;
     [self updateTitleState];
-    [self updateFeedTexts];
+    [self updateVisiblePosts];
 }
 
 - (void)aiButtonTapped {
@@ -204,35 +407,41 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self.discoverButton setImage:[[UIImage imageNamed:discoverImageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
 }
 
-- (void)updateFeedTexts {
-    NSArray<NSString *> *trendingTexts = @[
-        @"Every time I\nswim, I feel ...",
-        @"Every time I\nswim, I feel ...",
-        @"Incredibly\nhappy! The...",
-        @"Every time I\nswim, I feel ...",
-        @"Every time I\nswim, I feel ...",
-        @"Every time I\nswim, I feel ..."
-    ];
-    NSArray<NSString *> *discoverTexts = @[
-        @"Fresh water\nmoments ...",
-        @"New lane,\nnew rhythm ...",
-        @"Pool light\nfeels calm ...",
-        @"Blue summer\nstories ...",
-        @"Today I found\nmy pace ...",
-        @"One more lap\nwith joy ..."
-    ];
+- (void)loadPosts {
+    self.posts = @[];
+    self.visiblePosts = @[];
+    [self.collectionView reloadData];
 
-    self.feedTexts = self.feedMode == HomeFeedModeTrending ? trendingTexts : discoverTexts;
+    __weak typeof(self) weakSelf = self;
+    [[LuketDataService sharedService] fetchGlobalDataWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        if (error) {
+            NSLog(@"[Luket] Home postList load failed: %@", error.localizedDescription);
+            return;
+        }
+
+        strongSelf.posts = data.postList ?: @[];
+        NSLog(@"[Luket] Home postList count: %lu", (unsigned long)strongSelf.posts.count);
+        [strongSelf updateVisiblePosts];
+    }];
+}
+
+- (void)updateVisiblePosts {
+    self.visiblePosts = self.posts ?: @[];
     [self.collectionView reloadData];
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return self.feedTexts.count;
+    return self.visiblePosts.count;
 }
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     HomeFeedCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"HomeFeedCell" forIndexPath:indexPath];
-    [cell configureWithText:self.feedTexts[indexPath.item] index:indexPath.item];
+    [cell configureWithPost:self.visiblePosts[indexPath.item] index:indexPath.item];
     
     __weak typeof(self) weakSelf = self;
     cell.avatarTapHandler = ^{

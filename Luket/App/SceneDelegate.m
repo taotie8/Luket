@@ -7,6 +7,7 @@
 
 #import "SceneDelegate.h"
 #import "../Modules/Main/TabBar/MainTabBarController.h"
+#import "../Modules/Main/Data/Service/LuketDataService.h"
 #import "ViewController.h"
 @interface SceneDelegate ()
 
@@ -22,7 +23,11 @@
 
     UIWindowScene *windowScene = (UIWindowScene *)scene;
     self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
-    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:ViewController.new];//[[MainTabBarController alloc] init];
+    if ([[LuketDataService sharedService] hasAuthToken]) {
+        self.window.rootViewController = [[MainTabBarController alloc] init];
+    } else {
+        self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:ViewController.new];
+    }
     [self.window makeKeyAndVisible];
 }
 

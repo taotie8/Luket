@@ -16,6 +16,9 @@ typedef void (^LuketAPIClientCompletion)(id _Nullable responseObject, NSError * 
 @property (nonatomic, copy) NSString *baseURLString;
 
 + (instancetype)sharedClient;
+- (void)getPath:(NSString *)path
+     parameters:(nullable NSDictionary *)parameters
+     completion:(LuketAPIClientCompletion)completion;
 - (void)postPath:(NSString *)path
       parameters:(nullable NSDictionary *)parameters
       completion:(LuketAPIClientCompletion)completion;

@@ -95,8 +95,12 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
     if (self) {
         _userId = LuketStringValue(dictionary[@"userId"]);
         _nickname = LuketStringValue(dictionary[@"nickname"]);
+        if (_nickname.length == 0) {
+            _nickname = LuketStringValue(dictionary[@"userName"]);
+        }
         _avatarUrl = LuketStringValue(dictionary[@"avatarUrl"]);
         _age = LuketIntegerValue(dictionary[@"age"]);
+        _birthday = LuketStringValue(dictionary[@"birthday"]);
         _gender = LuketStringValue(dictionary[@"gender"]);
         _email = LuketStringValue(dictionary[@"email"]);
         _password = LuketStringValue(dictionary[@"password"]);
@@ -111,6 +115,7 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
         @"nickname": self.nickname,
         @"avatarUrl": self.avatarUrl,
         @"age": @(self.age),
+        @"birthday": self.birthday,
         @"gender": self.gender,
         @"email": self.email,
         @"password": self.password,

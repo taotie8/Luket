@@ -29,22 +29,21 @@ typedef void (^LuketActionCompletion)(BOOL success, NSString *message, NSError *
 
 @property (nonatomic, copy, nullable, readonly) NSString *currentLoginUserId;
 @property (nonatomic, strong, nullable, readonly) LuketUser *currentUser;
+@property (nonatomic, copy, nullable, readonly) NSString *authToken;
 
 + (instancetype)sharedService;
 - (void)configureBaseURLString:(NSString *)baseURLString;
+- (BOOL)hasAuthToken;
+- (void)clearAuthToken;
 
 - (void)fetchGlobalDataWithCompletion:(LuketGlobalDataCompletion)completion;
 - (void)saveGlobalData:(LuketGlobalData *)globalData completion:(LuketActionCompletion)completion;
 
 - (void)fetchUsersWithCompletion:(LuketUsersCompletion)completion;
 - (void)loginWithEmail:(NSString *)email password:(NSString *)password completion:(LuketUserCompletion)completion;
-- (void)registerWithNickname:(NSString *)nickname
-                   avatarUrl:(NSString *)avatarUrl
-                         age:(NSInteger)age
-                      gender:(NSString *)gender
-                       email:(NSString *)email
-                    password:(NSString *)password
-                  completion:(LuketUserCompletion)completion;
+- (void)registerWithEmail:(NSString *)email
+                 password:(NSString *)password
+               completion:(LuketUserCompletion)completion;
 
 - (void)fetchPostsWithCategory:(nullable NSString *)postCategory completion:(LuketPostsCompletion)completion;
 - (void)fetchPostDetailWithPostId:(NSString *)postId completion:(LuketPostCompletion)completion;

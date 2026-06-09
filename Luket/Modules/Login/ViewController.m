@@ -210,7 +210,7 @@
         }
         
         [self setLoggingIn:NO];
-        if (error || !user) {
+        if (error) {
             [self showAlertWithMessage:error.localizedDescription ?: @"Login failed."];
             return;
         }
@@ -220,6 +220,11 @@
 }
 
 - (void)signUpTapped {
+    if (!self.agreementButton.selected) {
+        [self showEULAView];
+        return;
+    }
+
     SignUpViewController *viewController = [[SignUpViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
