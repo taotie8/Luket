@@ -4,11 +4,14 @@
 //
 
 #import "UserProfilePostCell.h"
+#import "../../Common/LuketMediaResource.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 @interface UserProfilePostCell ()
 
 @property (nonatomic, strong) UIView *containerView;
 @property (nonatomic, strong) UIImageView *photoImageView;
+@property (nonatomic, strong) UIImageView *playIconImageView;
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *textLabel;
 
@@ -36,6 +39,13 @@
         self.photoImageView.clipsToBounds = YES;
         self.photoImageView.layer.cornerRadius = 23.0;
         [self.containerView addSubview:self.photoImageView];
+
+        self.playIconImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeVideoPlayIcon"]];
+        self.playIconImageView.frame = CGRectMake(0.0, 0.0, 44.0, 44.0);
+        self.playIconImageView.center = CGPointMake(CGRectGetMidX(self.photoImageView.frame), CGRectGetMidY(self.photoImageView.frame));
+        self.playIconImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.playIconImageView.hidden = YES;
+        [self.containerView addSubview:self.playIconImageView];
         
         self.avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
         self.avatarImageView.frame = CGRectMake(15.0, 138.0, 24.0, 24.0);
@@ -62,10 +72,69 @@
     self.containerView.transform = CGAffineTransformMakeScale(scale, scale);
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [self.photoImageView sd_cancelCurrentImageLoad];
+    [self.avatarImageView sd_cancelCurrentImageLoad];
+    self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
+    self.avatarImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
+    self.photoImageView.transform = CGAffineTransformIdentity;
+    self.avatarImageView.transform = CGAffineTransformIdentity;
+    self.playIconImageView.hidden = YES;
+    self.textLabel.text = nil;
+}
+
 - (void)configureWithText:(NSString *)text index:(NSUInteger)index {
     self.textLabel.text = text;
+    self.playIconImageView.hidden = YES;
     self.photoImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
     self.avatarImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+}
+
+- (void)configureWithPost:(LuketPost *)post author:(LuketUser *)author index:(NSUInteger)index {
+    self.textLabel.text = post.content.length > 0 ? post.content : @"";
+    BOOL isVideo = [[post.mediaType lowercaseString] isEqualToString:LuketPostMediaTypeVideo];
+    self.playIconImageView.hidden = !isVideo;
+    [self setImageView:self.photoImageView identifier:[self coverIdentifierForPost:post] placeholderImageName:@"HomeHeroImage"];
+    [self setImageView:self.avatarImageView identifier:author.avatarUrl placeholderImageName:@"HomeHeroImage"];
+    self.photoImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+    self.avatarImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+}
+
+- (NSString *)coverIdentifierForPost:(LuketPost *)post {
+    BOOL isVideo = [[post.mediaType lowercaseString] isEqualToString:LuketPostMediaTypeVideo];
+    if (isVideo && post.coverUrl.length > 0) {
+        return post.coverUrl;
+    }
+
+    for (NSString *identifier in post.mediaUrls) {
+        NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        if (trimmedIdentifier.length > 0) {
+            return trimmedIdentifier;
+        }
+    }
+    return post.coverUrl ?: @"";
+}
+
+- (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {
+    UIImage *placeholderImage = [UIImage imageNamed:placeholderImageName];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:identifier];
+    if (localImage) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    if (!imageURL) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = placeholderImage;
+        return;
+    }
+
+    [imageView sd_setImageWithURL:imageURL
+                 placeholderImage:placeholderImage
+                          options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 @end

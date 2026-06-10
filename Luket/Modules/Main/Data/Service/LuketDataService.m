@@ -12,6 +12,11 @@ static NSString * const LuketStoredUserNameKey = @"userName";
 static NSString * const LuketStoredAvatarUrlKey = @"avatarUrl";
 static NSString * const LuketStoredBirthdayKey = @"birthday";
 static NSString * const LuketStoredGenderKey = @"gender";
+static NSString * const LuketStoredEmailKey = @"email";
+static NSString * const LuketStoredPasswordKey = @"password";
+static NSString * const LuketStoredAgeKey = @"age";
+static NSString * const LuketStoredCreateTimeKey = @"createTime";
+static NSString * const LuketGlobalConfigId = @"2013934659768873312";
 static NSString * const LuketAPIPathGlobalData = @"api/api/tenant/entity/config/2013934659768873312";
 static NSString * const LuketAPIPathSaveGlobalData = @"api/api/tenant/entity/config/save";
 static NSString * const LuketAPIPathUserList = @"/user/list";
@@ -68,13 +73,21 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         NSString *avatarUrl = [defaults stringForKey:LuketStoredAvatarUrlKey];
         NSString *birthday = [defaults stringForKey:LuketStoredBirthdayKey];
         NSString *gender = [defaults stringForKey:LuketStoredGenderKey];
-        if (_currentLoginUserId.length > 0 || userName.length > 0 || avatarUrl.length > 0 || birthday.length > 0 || gender.length > 0) {
+        NSString *email = [defaults stringForKey:LuketStoredEmailKey];
+        NSString *password = [defaults stringForKey:LuketStoredPasswordKey];
+        NSString *createTime = [defaults stringForKey:LuketStoredCreateTimeKey];
+        NSInteger age = [defaults integerForKey:LuketStoredAgeKey];
+        if (_currentLoginUserId.length > 0 || userName.length > 0 || avatarUrl.length > 0 || birthday.length > 0 || gender.length > 0 || email.length > 0) {
             _currentUser = [LuketUser modelWithDictionary:@{
                 @"userId": _currentLoginUserId ?: @"",
                 @"nickname": userName ?: @"",
                 @"avatarUrl": avatarUrl ?: @"",
+                @"age": @(age),
                 @"birthday": birthday ?: @"",
-                @"gender": gender ?: @""
+                @"gender": gender ?: @"",
+                @"email": email ?: @"",
+                @"password": password ?: @"",
+                @"createTime": createTime ?: @""
             }];
         }
     }
@@ -99,6 +112,10 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredAvatarUrlKey];
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredBirthdayKey];
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredGenderKey];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredEmailKey];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredPasswordKey];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredAgeKey];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredCreateTimeKey];
     [NSUserDefaults.standardUserDefaults synchronize];
 }
 
@@ -112,17 +129,99 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
             completion(nil, error);
             return;
         }
-        NSLog(@"[Luket] Global data raw response:\n%@", [self debugJSONStringFromObject:responseObject]);
 
         NSDictionary *dictionary = [self globalDataDictionaryFromResponse:responseObject];
-        NSLog(@"[Luket] Global data parsed payload:\n%@", [self debugJSONStringFromObject:dictionary]);
-        completion([LuketGlobalData modelWithDictionary:dictionary ?: @{}], nil);
+        LuketGlobalData *globalData = [LuketGlobalData modelWithDictionary:dictionary ?: @{}];
+        [self ensureCurrentUserExistsInGlobalData:globalData completion:^(LuketGlobalData *updatedGlobalData) {
+            completion(updatedGlobalData, nil);
+        }];
     }];
 }
 
 - (void)saveGlobalData:(LuketGlobalData *)globalData completion:(LuketActionCompletion)completion {
-    NSDictionary *parameters = globalData ? [globalData dictionaryRepresentation] : @{};
+    NSDictionary *configInfo = globalData ? [globalData dictionaryRepresentation] : @{};
+    NSDictionary *parameters = @{
+        @"id": LuketGlobalConfigId,
+        @"configInfo": configInfo ?: @{}
+    };
     [self performActionAtPath:LuketAPIPathSaveGlobalData parameters:parameters completion:completion];
+}
+
+- (void)ensureCurrentUserExistsInGlobalData:(LuketGlobalData *)globalData completion:(void (^)(LuketGlobalData *updatedGlobalData))completion {
+    if (!completion) {
+        return;
+    }
+
+    LuketUser *currentUser = [self currentUserForGlobalData];
+    if (!globalData || currentUser.userId.length == 0 || [self userList:globalData.userList containsUserId:currentUser.userId]) {
+        completion(globalData ?: [[LuketGlobalData alloc] init]);
+        return;
+    }
+
+    NSMutableArray<LuketUser *> *users = globalData.userList.mutableCopy ?: [NSMutableArray array];
+    [users addObject:currentUser];
+    globalData.userList = users.copy;
+
+    [self saveGlobalData:globalData completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        if (!success || error) {
+            NSLog(@"[Luket] Save current user to global data failed: %@", error.localizedDescription ?: message);
+        }
+        completion(globalData);
+    }];
+}
+
+- (BOOL)userList:(NSArray<LuketUser *> *)userList containsUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return NO;
+    }
+
+    for (LuketUser *user in userList) {
+        if ([user.userId isEqualToString:userId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (LuketUser *)currentUserForGlobalData {
+    NSDictionary *userDictionary = [self currentUserDictionaryForGlobalData];
+    if (userDictionary.count == 0) {
+        return nil;
+    }
+
+    LuketUser *user = [LuketUser modelWithDictionary:userDictionary];
+    self.currentUser = user;
+    self.currentLoginUserId = user.userId;
+    return user;
+}
+
+- (NSDictionary *)currentUserDictionaryForGlobalData {
+    NSString *userId = self.currentUser.userId.length > 0 ? self.currentUser.userId : self.currentLoginUserId;
+    if (userId.length == 0) {
+        return @{};
+    }
+
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    NSString *nickname = self.currentUser.nickname.length > 0 ? self.currentUser.nickname : [defaults stringForKey:LuketStoredUserNameKey];
+    NSString *avatarUrl = self.currentUser.avatarUrl.length > 0 ? self.currentUser.avatarUrl : [defaults stringForKey:LuketStoredAvatarUrlKey];
+    NSString *birthday = self.currentUser.birthday.length > 0 ? self.currentUser.birthday : [defaults stringForKey:LuketStoredBirthdayKey];
+    NSString *gender = self.currentUser.gender.length > 0 ? self.currentUser.gender : [defaults stringForKey:LuketStoredGenderKey];
+    NSString *email = self.currentUser.email.length > 0 ? self.currentUser.email : [defaults stringForKey:LuketStoredEmailKey];
+    NSString *password = self.currentUser.password.length > 0 ? self.currentUser.password : [defaults stringForKey:LuketStoredPasswordKey];
+    NSString *createTime = self.currentUser.createTime.length > 0 ? self.currentUser.createTime : [defaults stringForKey:LuketStoredCreateTimeKey];
+    NSInteger age = self.currentUser.age > 0 ? self.currentUser.age : [defaults integerForKey:LuketStoredAgeKey];
+
+    return @{
+        @"userId": userId,
+        @"nickname": nickname.length > 0 ? nickname : @"User",
+        @"avatarUrl": avatarUrl ?: @"",
+        @"age": @(age > 0 ? age : 18),
+        @"birthday": birthday ?: @"",
+        @"gender": gender ?: @"",
+        @"email": email ?: @"",
+        @"password": password ?: @"",
+        @"createTime": createTime ?: @""
+    };
 }
 
 - (void)fetchUsersWithCompletion:(LuketUsersCompletion)completion {
@@ -158,12 +257,10 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
             return;
         }
 
-        NSLog(@"[Luket] Login success response:\n%@", [self debugJSONStringFromObject:responseObject]);
-
         NSDictionary *loginData = [self loginDataFromResponse:responseObject];
-        [self persistLoginData:loginData];
+        [self persistLoginData:loginData fallbackEmail:email password:password];
 
-        LuketUser *user = [self userFromLoginData:loginData fallbackResponse:responseObject];
+        LuketUser *user = [self userFromLoginData:loginData fallbackResponse:responseObject fallbackEmail:email password:password];
 
         if (completion) {
             completion(user, nil);
@@ -196,9 +293,9 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         }
 
         NSDictionary *loginData = [self loginDataFromResponse:responseObject];
-        [self persistLoginData:loginData];
+        [self persistLoginData:loginData fallbackEmail:email password:password];
 
-        LuketUser *user = [self userFromLoginData:loginData fallbackResponse:responseObject];
+        LuketUser *user = [self userFromLoginData:loginData fallbackResponse:responseObject fallbackEmail:email password:password];
 
         if (completion) {
             completion(user, nil);
@@ -531,6 +628,9 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         NSDictionary *dictionary = [self dictionaryPayloadFromResponse:responseObject key:nil];
         BOOL success = YES;
         NSString *message = @"";
+        if ([dictionary[@"code"] respondsToSelector:@selector(integerValue)]) {
+            success = [dictionary[@"code"] integerValue] == 200;
+        }
         if ([dictionary[@"success"] respondsToSelector:@selector(boolValue)]) {
             success = [dictionary[@"success"] boolValue];
         }
@@ -570,23 +670,6 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         message = dictionary[@"message"];
     }
     return message;
-}
-
-- (NSString *)debugJSONStringFromObject:(id)object {
-    if (!object) {
-        return @"<null>";
-    }
-    if (![NSJSONSerialization isValidJSONObject:object]) {
-        return [object description];
-    }
-
-    NSError *error;
-    NSData *data = [NSJSONSerialization dataWithJSONObject:object options:NSJSONWritingPrettyPrinted error:&error];
-    if (!data || error) {
-        return [object description];
-    }
-
-    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: [object description];
 }
 
 - (NSDictionary *)loginDataFromResponse:(id)responseObject {
@@ -678,11 +761,12 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     return [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
 }
 
-- (void)persistLoginData:(NSDictionary *)loginData {
+- (void)persistLoginData:(NSDictionary *)loginData fallbackEmail:(NSString *)fallbackEmail password:(NSString *)fallbackPassword {
     if (![loginData isKindOfClass:NSDictionary.class]) {
         return;
     }
 
+    NSDictionary *userInfo = [self userInfoFromLoginData:loginData];
     NSString *token = [self normalizedStringValue:loginData[@"token"]];
     if (token.length == 0) {
         token = [self authTokenFromResponseObject:loginData];
@@ -690,27 +774,72 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     self.authToken = token;
     [self storeLoginStringValue:token forKey:LuketAuthTokenKey];
 
-    NSString *userId = [self normalizedStringValue:loginData[@"userId"]];
+    NSString *userId = [self normalizedStringValue:userInfo[@"userId"]];
+    if (userId.length == 0) {
+        userId = [self normalizedStringValue:userInfo[@"id"]];
+    }
     self.currentLoginUserId = userId;
     [self storeLoginStringValue:userId forKey:LuketStoredUserIdKey];
 
-    NSString *userName = [self normalizedStringValue:loginData[@"userName"]];
+    NSString *userName = [self normalizedStringValue:userInfo[@"userName"]];
+    if (userName.length == 0) {
+        userName = [self normalizedStringValue:userInfo[@"nickname"]];
+    }
     [self storeLoginStringValue:userName forKey:LuketStoredUserNameKey];
 
-    NSString *avatarUrl = [self normalizedStringValue:loginData[@"avatarUrl"]];
+    NSString *avatarUrl = [self normalizedStringValue:userInfo[@"avatarUrl"]];
+    if (avatarUrl.length == 0) {
+        avatarUrl = [self normalizedStringValue:userInfo[@"avatar"]];
+    }
     [self storeLoginStringValue:avatarUrl forKey:LuketStoredAvatarUrlKey];
 
-    NSString *birthday = [self normalizedStringValue:loginData[@"birthday"]];
+    NSString *birthday = [self normalizedStringValue:userInfo[@"birthday"]];
     [self storeLoginStringValue:birthday forKey:LuketStoredBirthdayKey];
 
-    NSString *gender = [self normalizedStringValue:loginData[@"gender"]];
+    NSString *gender = [self normalizedStringValue:userInfo[@"gender"]];
     [self storeLoginStringValue:gender forKey:LuketStoredGenderKey];
+
+    NSString *email = [self normalizedStringValue:userInfo[@"email"]];
+    if (email.length == 0) {
+        email = [self normalizedStringValue:userInfo[@"mail"]];
+    }
+    if (email.length == 0) {
+        email = [self normalizedStringValue:fallbackEmail];
+    }
+    [self storeLoginStringValue:email forKey:LuketStoredEmailKey];
+
+    NSString *password = [self normalizedStringValue:userInfo[@"password"]];
+    if (password.length == 0) {
+        password = [self normalizedStringValue:fallbackPassword];
+    }
+    [self storeLoginStringValue:password forKey:LuketStoredPasswordKey];
+
+    NSString *age = [self normalizedStringValue:userInfo[@"age"]];
+    [self storeLoginStringValue:age forKey:LuketStoredAgeKey];
+
+    NSString *createTime = [self normalizedStringValue:userInfo[@"createTime"]];
+    [self storeLoginStringValue:createTime forKey:LuketStoredCreateTimeKey];
 
     [NSUserDefaults.standardUserDefaults synchronize];
 }
 
-- (LuketUser *)userFromLoginData:(NSDictionary *)loginData fallbackResponse:(id)responseObject {
-    NSDictionary *userDictionary = loginData;
+- (NSDictionary *)userInfoFromLoginData:(NSDictionary *)loginData {
+    if (![loginData isKindOfClass:NSDictionary.class]) {
+        return @{};
+    }
+
+    NSArray<NSString *> *userKeys = @[@"user", @"account", @"profile", @"member", @"userInfo"];
+    for (NSString *key in userKeys) {
+        id value = loginData[key];
+        if ([value isKindOfClass:NSDictionary.class]) {
+            return value;
+        }
+    }
+    return loginData;
+}
+
+- (LuketUser *)userFromLoginData:(NSDictionary *)loginData fallbackResponse:(id)responseObject fallbackEmail:(NSString *)fallbackEmail password:(NSString *)fallbackPassword {
+    NSDictionary *userDictionary = [self userInfoFromLoginData:loginData];
     if (![userDictionary isKindOfClass:NSDictionary.class] || userDictionary.count == 0) {
         userDictionary = [self dictionaryPayloadFromResponse:responseObject key:@"user"];
     }
@@ -718,7 +847,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         return nil;
     }
 
-    BOOL hasUserFields = userDictionary[@"userId"] || userDictionary[@"nickname"] || userDictionary[@"userName"] || userDictionary[@"email"];
+    BOOL hasUserFields = userDictionary[@"userId"] || userDictionary[@"id"] || userDictionary[@"nickname"] || userDictionary[@"userName"] || userDictionary[@"email"];
     if (!hasUserFields) {
         return nil;
     }
@@ -727,10 +856,33 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if (![normalizedDictionary[@"nickname"] isKindOfClass:NSString.class] && [normalizedDictionary[@"userName"] isKindOfClass:NSString.class]) {
         normalizedDictionary[@"nickname"] = normalizedDictionary[@"userName"];
     }
+    if (![normalizedDictionary[@"userId"] isKindOfClass:NSString.class] || [normalizedDictionary[@"userId"] length] == 0) {
+        NSString *userId = [self normalizedStringValue:normalizedDictionary[@"id"]];
+        if (userId.length == 0) {
+            userId = self.currentLoginUserId;
+        }
+        if (userId.length > 0) {
+            normalizedDictionary[@"userId"] = userId;
+        }
+    }
+    if (![normalizedDictionary[@"email"] isKindOfClass:NSString.class] || [normalizedDictionary[@"email"] length] == 0) {
+        NSString *email = [self normalizedStringValue:fallbackEmail];
+        if (email.length > 0) {
+            normalizedDictionary[@"email"] = email;
+        }
+    }
+    if (![normalizedDictionary[@"password"] isKindOfClass:NSString.class] || [normalizedDictionary[@"password"] length] == 0) {
+        NSString *password = [self normalizedStringValue:fallbackPassword];
+        if (password.length > 0) {
+            normalizedDictionary[@"password"] = password;
+        }
+    }
 
     LuketUser *user = [LuketUser modelWithDictionary:normalizedDictionary.copy];
     self.currentUser = user;
-    self.currentLoginUserId = user.userId;
+    if (user.userId.length > 0) {
+        self.currentLoginUserId = user.userId;
+    }
     return user;
 }
 

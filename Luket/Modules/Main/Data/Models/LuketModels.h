@@ -74,6 +74,14 @@ FOUNDATION_EXPORT LuketPostMediaType const LuketPostMediaTypeImage;
 
 @end
 
+@interface LuketFollowRelation : NSObject <LuketJSONModel>
+
+@property (nonatomic, copy) NSString *userId;
+@property (nonatomic, copy) NSString *targetUserId;
+@property (nonatomic, copy) NSString *followTime;
+
+@end
+
 @interface LuketAIConversation : NSObject <LuketJSONModel>
 
 @property (nonatomic, copy) NSString *conversationId;
@@ -146,6 +154,7 @@ FOUNDATION_EXPORT LuketPostMediaType const LuketPostMediaTypeImage;
 @property (nonatomic, copy) NSArray<LuketPostComment *> *postCommentList;
 @property (nonatomic, copy) NSArray<LuketLikeRelation *> *likeList;
 @property (nonatomic, copy) NSArray<LuketBlackRelation *> *blackList;
+@property (nonatomic, copy) NSArray<LuketFollowRelation *> *followList;
 @property (nonatomic, copy) NSArray<LuketAIConversation *> *aiConversations;
 @property (nonatomic, copy) NSArray<LuketGroupChat *> *groupChats;
 @property (nonatomic, copy) NSArray<LuketGroupMessage *> *groupMessages;

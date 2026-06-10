@@ -111,7 +111,6 @@ typedef NS_ENUM(NSInteger, LuketAPIClientErrorCode) {
 - (void)startRequest:(NSURLRequest *)request completion:(LuketAPIClientCompletion)completion {
     NSMutableURLRequest *authorizedRequest = request.mutableCopy;
     [self configureCommonHeadersForRequest:authorizedRequest];
-    NSLog(@"[Luket] Request %@ %@", authorizedRequest.HTTPMethod ?: @"", authorizedRequest.URL.absoluteString ?: @"");
 
     NSURLSessionDataTask *task = [self.session dataTaskWithRequest:authorizedRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (error) {
@@ -141,6 +140,7 @@ typedef NS_ENUM(NSInteger, LuketAPIClientErrorCode) {
             return;
         }
         
+        [self debugLogResponseObject:responseObject request:authorizedRequest];
         [self complete:completion responseObject:responseObject error:nil];
     }];
     [task resume];
@@ -291,6 +291,31 @@ typedef NS_ENUM(NSInteger, LuketAPIClientErrorCode) {
     return [NSError errorWithDomain:LuketAPIClientErrorDomain
                                code:code
                            userInfo:@{NSLocalizedDescriptionKey: message ?: @"Request failed"}];
+}
+
+- (void)debugLogResponseObject:(id)responseObject request:(NSURLRequest *)request {
+#if DEBUG
+    NSString *jsonString = [self prettyJSONStringFromObject:responseObject];
+    NSLog(@"[Luket] Response JSON %@ %@:\n%@", request.HTTPMethod ?: @"", request.URL.absoluteString ?: @"", jsonString);
+#endif
+}
+
+- (NSString *)prettyJSONStringFromObject:(id)object {
+    if (!object) {
+        return @"null";
+    }
+
+    if (![NSJSONSerialization isValidJSONObject:object]) {
+        return [object description];
+    }
+
+    NSError *error;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:object options:NSJSONWritingPrettyPrinted error:&error];
+    if (!data || error) {
+        return [object description];
+    }
+
+    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: [object description];
 }
 
 - (void)complete:(LuketAPIClientCompletion)completion responseObject:(id)responseObject error:(NSError *)error {

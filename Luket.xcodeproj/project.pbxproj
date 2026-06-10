@@ -6,8 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */; };
+		9D7F4A012FE9A90000C0D001 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 9D7F4A012FE9A90000C0D002 /* SDWebImage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		723E4BB72FD016FB0024B9F9 /* Luket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Luket.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +42,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */,
+				9D7F4A012FE9A90000C0D001 /* SDWebImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,8 +54,17 @@
 			isa = PBXGroup;
 			children = (
 				723E4BB92FD016FB0024B9F9 /* Luket */,
+				9D7F4A022FE9A90000C0D003 /* Frameworks */,
 				723E4BB82FD016FB0024B9F9 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		9D7F4A022FE9A90000C0D003 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		723E4BB82FD016FB0024B9F9 /* Products */ = {
@@ -78,6 +95,7 @@
 			);
 			name = Luket;
 			packageProductDependencies = (
+				9D7F4A012FE9A90000C0D002 /* SDWebImage */,
 			);
 			productName = Luket;
 			productReference = 723E4BB72FD016FB0024B9F9 /* Luket.app */;
@@ -106,6 +124,9 @@
 			);
 			mainGroup = 723E4BAE2FD016FB0024B9F9;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 723E4BB82FD016FB0024B9F9 /* Products */;
 			projectDirPath = "";
@@ -341,6 +362,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9D7F4A012FE9A90000C0D002 /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 723E4BAF2FD016FB0024B9F9 /* Project object */;
 }

@@ -10,7 +10,8 @@
 #import "../AISwimming/AISwimmingViewController.h"
 #import "../Profile/UserProfileViewController.h"
 #import "../Data/Service/LuketDataService.h"
-#import "../Data/Network/LuketAPIClient.h"
+#import "../Common/LuketMediaResource.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     HomeFeedModeTrending,
@@ -32,7 +33,6 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 @property (nonatomic, strong) UIImageView *playIconImageView;
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *textLabel;
-@property (nonatomic, copy) NSString *representedImageIdentifier;
 
 @end
 
@@ -90,7 +90,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (void)prepareForReuse {
     [super prepareForReuse];
     self.avatarTapHandler = nil;
-    self.representedImageIdentifier = nil;
+    [self.photoImageView sd_cancelCurrentImageLoad];
     self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
     self.photoImageView.transform = CGAffineTransformIdentity;
     self.playIconImageView.hidden = YES;
@@ -125,176 +125,25 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
 - (void)setCoverImageWithIdentifier:(NSString *)identifier {
     NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    self.representedImageIdentifier = trimmedIdentifier ?: @"";
+    UIImage *placeholderImage = [UIImage imageNamed:@"HomeHeroImage"];
 
-    UIImage *localImage = [self localImageWithIdentifier:trimmedIdentifier];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:trimmedIdentifier];
     if (localImage) {
+        [self.photoImageView sd_cancelCurrentImageLoad];
         self.photoImageView.image = localImage;
         return;
     }
 
-    self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
-
-    NSString *expectedIdentifier = self.representedImageIdentifier.copy;
-    NSURL *imageURL = [self directImageURLWithIdentifier:trimmedIdentifier];
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:trimmedIdentifier];
     if (!imageURL) {
-        [self loadMediaFileWithIdentifier:trimmedIdentifier expectedIdentifier:expectedIdentifier];
+        [self.photoImageView sd_cancelCurrentImageLoad];
+        self.photoImageView.image = placeholderImage;
         return;
     }
 
-    NSLog(@"[Luket] Home media image URL: %@", imageURL.absoluteString);
-    [self loadImageWithURL:imageURL expectedIdentifier:expectedIdentifier];
-}
-
-- (void)loadImageWithURL:(NSURL *)imageURL expectedIdentifier:(NSString *)expectedIdentifier {
-    __weak typeof(self) weakSelf = self;
-    NSURLSessionDataTask *task = [NSURLSession.sharedSession dataTaskWithURL:imageURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        (void)response;
-        if (error || data.length == 0) {
-            return;
-        }
-
-        UIImage *remoteImage = [UIImage imageWithData:data];
-        if (!remoteImage) {
-            return;
-        }
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (!strongSelf || ![strongSelf.representedImageIdentifier isEqualToString:expectedIdentifier]) {
-                return;
-            }
-            strongSelf.photoImageView.image = remoteImage;
-        });
-    }];
-    [task resume];
-}
-
-- (void)loadMediaFileWithIdentifier:(NSString *)identifier expectedIdentifier:(NSString *)expectedIdentifier {
-    if (identifier.length == 0) {
-        return;
-    }
-
-    [[LuketAPIClient sharedClient] getPath:@"api/file/download" parameters:@{@"fileName": identifier} completion:^(id responseObject, NSError *error) {
-        if (error) {
-            NSLog(@"[Luket] Home media file load failed: %@", error.localizedDescription);
-            return;
-        }
-
-        NSString *mediaString = [self mediaStringFromDownloadResponse:responseObject];
-        UIImage *image = [self imageFromMediaString:mediaString];
-        if (image) {
-            if (![self.representedImageIdentifier isEqualToString:expectedIdentifier]) {
-                return;
-            }
-            self.photoImageView.image = image;
-            return;
-        }
-
-        NSURL *imageURL = [self directImageURLWithIdentifier:mediaString];
-        if (imageURL) {
-            NSLog(@"[Luket] Home media image URL: %@", imageURL.absoluteString);
-            [self loadImageWithURL:imageURL expectedIdentifier:expectedIdentifier];
-            return;
-        }
-
-        if ([responseObject isKindOfClass:NSDictionary.class]) {
-            NSDictionary *dictionary = (NSDictionary *)responseObject;
-            NSLog(@"[Luket] Home media file response: %@", dictionary[@"msg"] ?: dictionary);
-        }
-    }];
-}
-
-- (NSString *)mediaStringFromDownloadResponse:(id)responseObject {
-    if ([responseObject isKindOfClass:NSString.class]) {
-        return responseObject;
-    }
-
-    if (![responseObject isKindOfClass:NSDictionary.class]) {
-        return @"";
-    }
-
-    NSDictionary *dictionary = (NSDictionary *)responseObject;
-    id data = dictionary[@"data"];
-    if ([data isKindOfClass:NSString.class]) {
-        return data;
-    }
-
-    if (![data isKindOfClass:NSDictionary.class]) {
-        return @"";
-    }
-
-    NSDictionary *dataDictionary = (NSDictionary *)data;
-    NSArray<NSString *> *keys = @[@"url", @"fileUrl", @"downloadUrl", @"path", @"filePath"];
-    for (NSString *key in keys) {
-        id value = dataDictionary[key];
-        if ([value isKindOfClass:NSString.class] && [value length] > 0) {
-            return value;
-        }
-    }
-    return @"";
-}
-
-- (UIImage *)imageFromMediaString:(NSString *)mediaString {
-    if (mediaString.length == 0 || [mediaString hasPrefix:@"http://"] || [mediaString hasPrefix:@"https://"]) {
-        return nil;
-    }
-
-    NSString *base64String = mediaString;
-    NSRange commaRange = [base64String rangeOfString:@","];
-    if ([base64String hasPrefix:@"data:image"] && commaRange.location != NSNotFound) {
-        base64String = [base64String substringFromIndex:commaRange.location + 1];
-    }
-
-    NSData *imageData = [[NSData alloc] initWithBase64EncodedString:base64String options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    return imageData.length > 0 ? [UIImage imageWithData:imageData] : nil;
-}
-
-- (UIImage *)localImageWithIdentifier:(NSString *)identifier {
-    if (identifier.length == 0) {
-        return nil;
-    }
-
-    UIImage *image = [UIImage imageNamed:identifier];
-    if (image) {
-        return image;
-    }
-
-    NSString *imageNameWithoutExtension = identifier.stringByDeletingPathExtension;
-    if (imageNameWithoutExtension.length > 0 && ![imageNameWithoutExtension isEqualToString:identifier]) {
-        image = [UIImage imageNamed:imageNameWithoutExtension];
-        if (image) {
-            return image;
-        }
-    }
-
-    NSString *bundlePath = [NSBundle.mainBundle pathForResource:identifier ofType:nil];
-    if (!bundlePath && identifier.lastPathComponent.length > 0) {
-        bundlePath = [NSBundle.mainBundle pathForResource:identifier.lastPathComponent ofType:nil];
-    }
-    return bundlePath.length > 0 ? [UIImage imageWithContentsOfFile:bundlePath] : nil;
-}
-
-- (NSURL *)directImageURLWithIdentifier:(NSString *)identifier {
-    if (identifier.length == 0) {
-        return nil;
-    }
-
-    if ([identifier hasPrefix:@"http://"] || [identifier hasPrefix:@"https://"]) {
-        return [NSURL URLWithString:identifier];
-    }
-
-    NSString *baseURLString = LuketAPIClient.sharedClient.baseURLString.length > 0 ? LuketAPIClient.sharedClient.baseURLString : @"https://dev.chavytogo.com/";
-    if (![baseURLString hasSuffix:@"/"]) {
-        baseURLString = [baseURLString stringByAppendingString:@"/"];
-    }
-
-    if ([identifier hasPrefix:@"/"]) {
-        NSURL *baseURL = [NSURL URLWithString:baseURLString];
-        return [NSURL URLWithString:[identifier substringFromIndex:1] relativeToURL:baseURL].absoluteURL;
-    }
-
-    return nil;
+    [self.photoImageView sd_setImageWithURL:imageURL
+                           placeholderImage:placeholderImage
+                                    options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 - (void)avatarButtonTapped {
@@ -314,6 +163,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 @property (nonatomic, strong) UIButton *discoverButton;
 @property (nonatomic, copy) NSArray<LuketPost *> *posts;
 @property (nonatomic, copy) NSArray<LuketPost *> *visiblePosts;
+@property (nonatomic, strong) LuketGlobalData *globalData;
 @property (nonatomic, assign) HomeFeedMode feedMode;
 
 @end
@@ -424,8 +274,8 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
             return;
         }
 
+        strongSelf.globalData = data;
         strongSelf.posts = data.postList ?: @[];
-        NSLog(@"[Luket] Home postList count: %lu", (unsigned long)strongSelf.posts.count);
         [strongSelf updateVisiblePosts];
     }];
 }
@@ -441,25 +291,121 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     HomeFeedCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"HomeFeedCell" forIndexPath:indexPath];
-    [cell configureWithPost:self.visiblePosts[indexPath.item] index:indexPath.item];
+    LuketPost *post = self.visiblePosts[indexPath.item];
+    [cell configureWithPost:post index:indexPath.item];
     
     __weak typeof(self) weakSelf = self;
     cell.avatarTapHandler = ^{
-        [weakSelf presentUserProfileViewController];
+        [weakSelf presentUserProfileViewControllerForUserId:post.publishUserId];
     };
     return cell;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.item >= self.visiblePosts.count) {
+        return;
+    }
+
+    LuketPost *post = self.visiblePosts[indexPath.item];
+    if (![self isDetailMediaPost:post]) {
+        return;
+    }
+
     DetailViewController *detailViewController = [[DetailViewController alloc] init];
+    detailViewController.post = post;
+    detailViewController.globalData = self.globalData;
+    detailViewController.author = [self userWithId:post.publishUserId];
+    detailViewController.users = self.globalData.userList ?: @[];
+    detailViewController.postComments = [self commentsForPostId:post.postId];
+    detailViewController.postLikedByCurrentUser = [self currentUserLikedPostId:post.postId];
+    detailViewController.authorFollowedByCurrentUser = [self currentUserFollowedUserId:post.publishUserId];
     detailViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:detailViewController animated:YES completion:nil];
 }
 
-- (void)presentUserProfileViewController {
+- (BOOL)isDetailMediaPost:(LuketPost *)post {
+    NSString *mediaType = [post.mediaType lowercaseString];
+    return [mediaType isEqualToString:LuketPostMediaTypeImage] || [mediaType isEqualToString:LuketPostMediaTypeVideo];
+}
+
+- (LuketUser *)userWithId:(NSString *)userId {
+    if (userId.length == 0) {
+        return nil;
+    }
+
+    for (LuketUser *user in self.globalData.userList) {
+        if ([user.userId isEqualToString:userId]) {
+            return user;
+        }
+    }
+    return nil;
+}
+
+- (NSArray<LuketPostComment *> *)commentsForPostId:(NSString *)postId {
+    if (postId.length == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LuketPostComment *> *comments = [NSMutableArray array];
+    for (LuketPostComment *comment in self.globalData.postCommentList) {
+        if ([comment.postId isEqualToString:postId]) {
+            [comments addObject:comment];
+        }
+    }
+    return comments.copy;
+}
+
+- (BOOL)currentUserLikedPostId:(NSString *)postId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (postId.length == 0 || currentUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketLikeRelation *relation in self.globalData.likeList) {
+        if ([relation.postId isEqualToString:postId] && [relation.userId isEqualToString:currentUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (BOOL)currentUserFollowedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return NO;
+    }
+
+    for (LuketFollowRelation *relation in self.globalData.followList) {
+        if ([relation.userId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (void)presentUserProfileViewControllerForUserId:(NSString *)userId {
     UserProfileViewController *viewController = [[UserProfileViewController alloc] init];
+    LuketUser *user = [self userWithId:userId];
+    viewController.profileUser = user;
+    viewController.globalData = self.globalData;
+    viewController.profilePosts = [self postsForUserId:userId];
+    viewController.followedByCurrentUser = [self currentUserFollowedUserId:userId];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (NSArray<LuketPost *> *)postsForUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LuketPost *> *posts = [NSMutableArray array];
+    for (LuketPost *post in self.globalData.postList) {
+        if ([post.publishUserId isEqualToString:userId]) {
+            [posts addObject:post];
+        }
+    }
+    return posts.copy;
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {

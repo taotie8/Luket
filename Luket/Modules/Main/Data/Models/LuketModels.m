@@ -247,6 +247,32 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
 
 @end
 
+@implementation LuketFollowRelation
+
++ (instancetype)modelWithDictionary:(NSDictionary *)dictionary {
+    return [[self alloc] initWithDictionary:dictionary];
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
+    self = [super init];
+    if (self) {
+        _userId = LuketStringValue(dictionary[@"userId"]);
+        _targetUserId = LuketStringValue(dictionary[@"targetUserId"]);
+        _followTime = LuketStringValue(dictionary[@"followTime"]);
+    }
+    return self;
+}
+
+- (NSDictionary *)dictionaryRepresentation {
+    return @{
+        @"userId": self.userId,
+        @"targetUserId": self.targetUserId,
+        @"followTime": self.followTime
+    };
+}
+
+@end
+
 @implementation LuketAIConversation
 
 + (instancetype)modelWithDictionary:(NSDictionary *)dictionary {
@@ -455,6 +481,7 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
         _postCommentList = LuketModelArrayValue(dictionary[@"postCommentList"], LuketPostComment.class);
         _likeList = LuketModelArrayValue(dictionary[@"likeList"], LuketLikeRelation.class);
         _blackList = LuketModelArrayValue(dictionary[@"blackList"], LuketBlackRelation.class);
+        _followList = LuketModelArrayValue(dictionary[@"followList"], LuketFollowRelation.class);
         _aiConversations = LuketModelArrayValue(dictionary[@"aiConversations"], LuketAIConversation.class);
         _groupChats = LuketModelArrayValue(dictionary[@"groupChats"], LuketGroupChat.class);
         _groupMessages = LuketModelArrayValue(dictionary[@"groupMessages"], LuketGroupMessage.class);
@@ -472,6 +499,7 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
         @"postCommentList": LuketDictionaryArrayValue(self.postCommentList),
         @"likeList": LuketDictionaryArrayValue(self.likeList),
         @"blackList": LuketDictionaryArrayValue(self.blackList),
+        @"followList": LuketDictionaryArrayValue(self.followList),
         @"aiConversations": LuketDictionaryArrayValue(self.aiConversations),
         @"groupChats": LuketDictionaryArrayValue(self.groupChats),
         @"groupMessages": LuketDictionaryArrayValue(self.groupMessages),

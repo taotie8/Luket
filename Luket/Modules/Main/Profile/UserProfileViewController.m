@@ -6,7 +6,10 @@
 #import "UserProfileViewController.h"
 #import "Cell/UserProfilePostCell.h"
 #import "../Common/MoreActionSheetView.h"
+#import "../Common/LuketMediaResource.h"
+#import "../Data/Service/LuketDataService.h"
 #import "../Report/ReportViewController.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     UserProfileViewTagBackground = 1001,
@@ -32,11 +35,42 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) UIButton *createButton;
 @property (nonatomic, copy) NSArray<NSString *> *postTexts;
+@property (nonatomic, assign) BOOL usingFallbackPosts;
 @property (nonatomic, assign) BOOL followed;
+@property (nonatomic, assign) BOOL updatingFollow;
 
 @end
 
 @implementation UserProfileViewController
+
+- (void)setProfileUser:(LuketUser *)profileUser {
+    BOOL userChanged = ![_profileUser.userId isEqualToString:profileUser.userId];
+    _profileUser = profileUser;
+    if (userChanged) {
+        _profilePosts = @[];
+        self.usingFallbackPosts = NO;
+    }
+    [self refreshProfileData];
+}
+
+- (void)setGlobalData:(LuketGlobalData *)globalData {
+    _globalData = globalData;
+    [self refreshProfileData];
+}
+
+- (void)setProfilePosts:(NSArray<LuketPost *> *)profilePosts {
+    _profilePosts = profilePosts.copy ?: @[];
+    self.usingFallbackPosts = NO;
+    [self.collectionView reloadData];
+}
+
+- (void)setFollowedByCurrentUser:(BOOL)followedByCurrentUser {
+    _followedByCurrentUser = followedByCurrentUser;
+    self.followed = followedByCurrentUser;
+    if (self.isViewLoaded) {
+        [self updateFollowButtons];
+    }
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -49,12 +83,13 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
         @"Every time I\nswim, I feel ...",
         @"Every time I\nswim, I feel ..."
     ];
-    self.followed = NO;
+    self.followed = self.followedByCurrentUser || [self currentUserFollowsProfileUser];
     self.view.backgroundColor = [self pageBackgroundColor];
     [self setupBackground];
     [self setupProfileViews];
     [self setupCollectionView];
     [self setupCreateButton];
+    [self refreshProfileData];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -177,6 +212,146 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     [self.view addSubview:self.createButton];
 }
 
+- (void)refreshProfileData {
+    if (!self.isViewLoaded) {
+        return;
+    }
+
+    LuketUser *user = self.profileUser;
+    if (!user) {
+        NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+        for (LuketUser *candidateUser in self.globalData.userList) {
+            if ([candidateUser.userId isEqualToString:currentUserId]) {
+                user = candidateUser;
+                break;
+            }
+        }
+        if (!user) {
+            user = LuketDataService.sharedService.currentUser;
+        }
+        _profileUser = user;
+    }
+
+    if (!self.profilePosts || self.profilePosts.count == 0) {
+        self.profilePosts = [self postsForUserId:user.userId];
+        self.usingFallbackPosts = user.userId.length == 0 && self.profilePosts.count == 0;
+    }
+
+    self.followed = self.followedByCurrentUser || [self currentUserFollowsProfileUser];
+    [self applyProfileUser:user];
+    [self updateFollowStats];
+    [self updateFollowButtons];
+    [self.collectionView reloadData];
+    [self.view setNeedsLayout];
+}
+
+- (void)applyProfileUser:(LuketUser *)user {
+    UIView *topBarView = [self.view viewWithTag:UserProfileViewTagTopBar];
+    UILabel *nameLabel = [topBarView viewWithTag:UserProfileViewTagName];
+    UILabel *displayNameLabel = [self.view viewWithTag:UserProfileViewTagDisplayName];
+    UILabel *bioLabel = [self.view viewWithTag:UserProfileViewTagBio];
+    UIImageView *backgroundView = [self.view viewWithTag:UserProfileViewTagBackground];
+    UIImageView *topAvatarView = [topBarView viewWithTag:UserProfileViewTagTopAvatar];
+    UIImageView *mainAvatarView = [self.view viewWithTag:UserProfileViewTagMainAvatar];
+
+    NSString *displayName = [self displayNameForUser:user];
+    nameLabel.text = displayName;
+    displayNameLabel.text = displayName;
+    bioLabel.text = [self bioTextForUser:user];
+    [self setImageView:topAvatarView identifier:user.avatarUrl placeholderImageName:@"HomeHeroImage"];
+    [self setImageView:mainAvatarView identifier:user.avatarUrl placeholderImageName:@"HomeHeroImage"];
+    [self setImageView:backgroundView identifier:[self backgroundIdentifierForUser:user] placeholderImageName:@"HomeHeroImage"];
+}
+
+- (NSString *)displayNameForUser:(LuketUser *)user {
+    if (user.nickname.length > 0) {
+        return user.nickname;
+    }
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    if (user.userId.length > 0) {
+        return user.userId;
+    }
+    return @"Freya";
+}
+
+- (NSString *)bioTextForUser:(LuketUser *)user {
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    if (user.gender.length > 0 && user.age > 0) {
+        return [NSString stringWithFormat:@"%@  %ld", user.gender, (long)user.age];
+    }
+    if (user.gender.length > 0) {
+        return user.gender;
+    }
+    if (user.age > 0) {
+        return [NSString stringWithFormat:@"%ld", (long)user.age];
+    }
+    return @"My motorcycle, my adventure partner.";
+}
+
+- (NSString *)backgroundIdentifierForUser:(LuketUser *)user {
+    NSString *postCoverIdentifier = [self coverIdentifierForPost:self.profilePosts.firstObject];
+    if (postCoverIdentifier.length > 0) {
+        return postCoverIdentifier;
+    }
+    return user.avatarUrl ?: @"";
+}
+
+- (NSArray<LuketPost *> *)postsForUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LuketPost *> *posts = [NSMutableArray array];
+    for (LuketPost *post in self.globalData.postList) {
+        if ([post.publishUserId isEqualToString:userId]) {
+            [posts addObject:post];
+        }
+    }
+    return posts.copy;
+}
+
+- (void)updateFollowStats {
+    NSInteger followingCount = [self followingCountForUserId:self.profileUser.userId];
+    NSInteger fansCount = [self fansCountForUserId:self.profileUser.userId];
+
+    UILabel *followCountLabel = [self.view viewWithTag:UserProfileViewTagFollowCount];
+    UILabel *fansCountLabel = [self.view viewWithTag:UserProfileViewTagFansCount];
+    followCountLabel.text = [NSString stringWithFormat:@"%ld", (long)followingCount];
+    fansCountLabel.text = [NSString stringWithFormat:@"%ld", (long)fansCount];
+}
+
+- (NSInteger)followingCountForUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return 0;
+    }
+
+    NSInteger count = 0;
+    for (LuketFollowRelation *relation in self.globalData.followList) {
+        if ([relation.userId isEqualToString:userId]) {
+            count++;
+        }
+    }
+    return count;
+}
+
+- (NSInteger)fansCountForUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return 0;
+    }
+
+    NSInteger count = 0;
+    for (LuketFollowRelation *relation in self.globalData.followList) {
+        if ([relation.targetUserId isEqualToString:userId]) {
+            count++;
+        }
+    }
+    return count;
+}
+
 - (void)layoutProfileViews {
     CGFloat width = CGRectGetWidth(self.view.bounds);
     CGFloat height = CGRectGetHeight(self.view.bounds);
@@ -266,12 +441,16 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return self.postTexts.count;
+    return self.usingFallbackPosts ? self.postTexts.count : self.profilePosts.count;
 }
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     UserProfilePostCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"UserProfilePostCell" forIndexPath:indexPath];
-    [cell configureWithText:self.postTexts[indexPath.item] index:indexPath.item];
+    if (!self.usingFallbackPosts && indexPath.item < self.profilePosts.count) {
+        [cell configureWithPost:self.profilePosts[indexPath.item] author:self.profileUser index:indexPath.item];
+    } else {
+        [cell configureWithText:self.postTexts[indexPath.item] index:indexPath.item];
+    }
     return cell;
 }
 
@@ -331,16 +510,138 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 }
 
 - (void)followButtonTapped {
-    self.followed = !self.followed;
+    if (self.updatingFollow || !self.globalData) {
+        return;
+    }
+
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    NSString *targetUserId = self.profileUser.userId;
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return;
+    }
+
+    BOOL previousFollowed = [self currentUserId:currentUserId followsUserId:targetUserId];
+    NSArray<LuketFollowRelation *> *previousFollowList = self.globalData.followList.copy ?: @[];
+    BOOL targetFollowed = !previousFollowed;
+
+    [self updateGlobalFollowListForUserId:currentUserId targetUserId:targetUserId followed:targetFollowed];
+    [self applyFollowed:targetFollowed];
+
+    self.updatingFollow = YES;
+    UIButton *followButton = [[self.view viewWithTag:UserProfileViewTagTopBar] viewWithTag:UserProfileViewTagAddButton];
+    followButton.enabled = NO;
+
+    __weak typeof(self) weakSelf = self;
+    [[LuketDataService sharedService] saveGlobalData:self.globalData completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        strongSelf.updatingFollow = NO;
+        followButton.enabled = YES;
+
+        if (!success || error) {
+            strongSelf.globalData.followList = previousFollowList;
+            [strongSelf applyFollowed:previousFollowed];
+            NSLog(@"[Luket] Save profile follow failed: %@", error.localizedDescription ?: message);
+        }
+    }];
+}
+
+- (void)applyFollowed:(BOOL)followed {
+    self.followed = followed;
+    _followedByCurrentUser = followed;
+    [self updateFollowStats];
     [self updateFollowButtons];
+}
+
+- (BOOL)currentUserFollowsProfileUser {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    return [self currentUserId:currentUserId followsUserId:self.profileUser.userId];
+}
+
+- (BOOL)currentUserId:(NSString *)userId followsUserId:(NSString *)targetUserId {
+    if (userId.length == 0 || targetUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketFollowRelation *relation in self.globalData.followList) {
+        if ([relation.userId isEqualToString:userId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (void)updateGlobalFollowListForUserId:(NSString *)userId targetUserId:(NSString *)targetUserId followed:(BOOL)followed {
+    NSMutableArray<LuketFollowRelation *> *followList = self.globalData.followList.mutableCopy ?: [NSMutableArray array];
+    NSIndexSet *matchingIndexes = [followList indexesOfObjectsPassingTest:^BOOL(LuketFollowRelation *relation, NSUInteger index, BOOL *stop) {
+        return [relation.userId isEqualToString:userId] && [relation.targetUserId isEqualToString:targetUserId];
+    }];
+
+    if (followed) {
+        if (matchingIndexes.count == 0) {
+            LuketFollowRelation *relation = [LuketFollowRelation modelWithDictionary:@{
+                @"userId": userId,
+                @"targetUserId": targetUserId,
+                @"followTime": [self currentRelationTimeString]
+            }];
+            [followList addObject:relation];
+        }
+    } else if (matchingIndexes.count > 0) {
+        [followList removeObjectsAtIndexes:matchingIndexes];
+    }
+
+    self.globalData.followList = followList.copy;
+}
+
+- (NSString *)currentRelationTimeString {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+    return [formatter stringFromDate:[NSDate date]];
 }
 
 - (void)updateFollowButtons {
     UIView *topBarView = [self.view viewWithTag:UserProfileViewTagTopBar];
     UIButton *followButton = [topBarView viewWithTag:UserProfileViewTagAddButton];
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    followButton.hidden = currentUserId.length > 0 && [currentUserId isEqualToString:self.profileUser.userId];
     NSString *imageName = self.followed ? @"DetailFollowRemoveButton" : @"DetailFollowAddButton";
     
     [followButton setImage:[[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+}
+
+- (NSString *)coverIdentifierForPost:(LuketPost *)post {
+    for (NSString *identifier in post.mediaUrls) {
+        NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        if (trimmedIdentifier.length > 0) {
+            return trimmedIdentifier;
+        }
+    }
+    return post.coverUrl ?: @"";
+}
+
+- (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {
+    UIImage *placeholderImage = [UIImage imageNamed:placeholderImageName];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:identifier];
+    if (localImage) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    if (!imageURL) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = placeholderImage;
+        return;
+    }
+
+    [imageView sd_setImageWithURL:imageURL
+                 placeholderImage:placeholderImage
+                          options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 - (UIColor *)pageBackgroundColor {

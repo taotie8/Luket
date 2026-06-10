@@ -11,7 +11,6 @@
 #import "../Message/MessageViewController.h"
 #import "../Post/PostViewController.h"
 #import "../Profile/MyProfileViewController.h"
-#import "../Data/Service/LuketDataService.h"
 
 @interface MainTabBarController ()
 
@@ -27,11 +26,9 @@
     [super viewDidLoad];
 
     self.tabBar.hidden = YES;
-//    self.view.backgroundColor = [self mainBackgroundColor];
     [self configureViewControllers];
     [self configureTabBar];
     [self updateSelectedTabAtIndex:0];
-    [self fetchAndLogGlobalData];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -66,16 +63,6 @@
     UIViewController *profile = [[MyProfileViewController alloc] init];
 
     self.viewControllers = @[swimming, discover, notifications, profile];
-}
-
-- (UIColor *)mainBackgroundColor {
-    return [UIColor colorWithRed:181.0 / 255.0 green:221.0 / 255.0 blue:244.0 / 255.0 alpha:1.0];
-}
-
-- (UIViewController *)placeholderControllerWithBackgroundColor:(UIColor *)backgroundColor {
-    UIViewController *viewController = [[UIViewController alloc] init];
-    viewController.view.backgroundColor = backgroundColor;
-    return viewController;
 }
 
 - (void)configureTabBar {
@@ -142,20 +129,6 @@
     self.selectedIndex = index;
     [self.tabButtons enumerateObjectsUsingBlock:^(UIButton *button, NSUInteger buttonIndex, BOOL *stop) {
         button.selected = buttonIndex == index;
-    }];
-}
-
-- (void)fetchAndLogGlobalData {
-    [[LuketDataService sharedService] fetchGlobalDataWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
-        if (error) {
-            NSLog(@"[Luket] Fetch global data failed: %@", error.localizedDescription);
-            return;
-        }
-
-        NSDictionary *dictionary = [data dictionaryRepresentation] ?: @{};
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dictionary options:NSJSONWritingPrettyPrinted error:nil];
-        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        NSLog(@"[Luket] Global data:\n%@", jsonString ?: dictionary);
     }];
 }
 
