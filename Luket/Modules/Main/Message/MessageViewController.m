@@ -5,10 +5,15 @@
 
 #import "MessageViewController.h"
 #import "FriendChatViewController.h"
+#import "../Data/Service/LuketDataService.h"
+
+static NSString * const MessageChatMessagesKeyPrefix = @"FriendChatMessages.";
+static NSString * const MessageChatUpdatedTimeKeyPrefix = @"FriendChatUpdatedTime.";
+static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 
 @interface MessageCell : UITableViewCell
 
-- (void)configureWithIndex:(NSInteger)index;
+- (void)configureWithTitle:(NSString *)title message:(NSString *)message index:(NSInteger)index;
 
 @end
 
@@ -30,28 +35,28 @@
         self.backgroundColor = UIColor.clearColor;
         self.contentView.backgroundColor = UIColor.clearColor;
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        
+
         self.cardImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MessageListCellBackground"]];
         self.cardImageView.contentMode = UIViewContentModeScaleToFill;
         [self.contentView addSubview:self.cardImageView];
-        
+
         self.avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
         self.avatarImageView.contentMode = UIViewContentModeScaleAspectFill;
         self.avatarImageView.clipsToBounds = YES;
         [self.contentView addSubview:self.avatarImageView];
-        
+
         self.titleLabel = [[UILabel alloc] init];
         self.titleLabel.text = @"MotoChat";
         self.titleLabel.textColor = [self titleColor];
         self.titleLabel.font = [self titleFontWithSize:20.0];
         [self.contentView addSubview:self.titleLabel];
-        
+
         self.messageLabel = [[UILabel alloc] init];
-        self.messageLabel.text = @"hello what are you doing?";
         self.messageLabel.textColor = [self titleColor];
         self.messageLabel.font = [UIFont systemFontOfSize:14.0];
+        self.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         [self.contentView addSubview:self.messageLabel];
-        
+
         self.moreLabel = [[UILabel alloc] init];
         self.moreLabel.text = @"⋮";
         self.moreLabel.textColor = [self titleColor];
@@ -64,10 +69,10 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+
     CGFloat width = CGRectGetWidth(self.contentView.bounds);
     CGFloat cardWidth = width - 40.0;
-    
+
     self.cardImageView.frame = CGRectMake(20.0, 0.0, cardWidth, 73.0);
     self.avatarImageView.frame = CGRectMake(40.0, 17.0, 40.0, 40.0);
     self.avatarImageView.layer.cornerRadius = 20.0;
@@ -76,7 +81,9 @@
     self.moreLabel.frame = CGRectMake(width - 86.0, 12.0, 28.0, 50.0);
 }
 
-- (void)configureWithIndex:(NSInteger)index {
+- (void)configureWithTitle:(NSString *)title message:(NSString *)message index:(NSInteger)index {
+    self.titleLabel.text = title.length > 0 ? title : @"MotoChat";
+    self.messageLabel.text = message.length > 0 ? message : @"";
     self.avatarImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
 }
 
@@ -94,6 +101,8 @@
 @interface MessageViewController () <UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, copy) NSArray<NSDictionary<NSString *, id> *> *conversations;
+@property (nonatomic, copy) NSArray<LuketUser *> *users;
 
 @end
 
@@ -101,9 +110,17 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     self.view.backgroundColor = [self pageBackgroundColor];
+    self.conversations = @[];
     [self setupViews];
+    [self loadUsers];
+    [self reloadConversations];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self reloadConversations];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -121,12 +138,12 @@
     self.tableView.delegate = self;
     [self.tableView registerClass:MessageCell.class forCellReuseIdentifier:@"MessageCell"];
     [self.view addSubview:self.tableView];
-    
+
     UIImageView *headerWaveView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MessageHeaderWave"]];
     headerWaveView.tag = 1001;
     headerWaveView.contentMode = UIViewContentModeScaleToFill;
     [self.view addSubview:headerWaveView];
-    
+
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.tag = 1002;
     titleLabel.text = @"Message";
@@ -138,25 +155,28 @@
 - (void)layoutViews {
     CGFloat width = CGRectGetWidth(self.view.bounds);
     CGFloat height = CGRectGetHeight(self.view.bounds);
-    
+
     UIImageView *headerWaveView = [self.view viewWithTag:1001];
     headerWaveView.frame = CGRectMake(0.0, 0.0, width, 128.0);
-    
+
     UILabel *titleLabel = [self.view viewWithTag:1002];
     titleLabel.frame = CGRectMake(20.0, 56.0, 220.0, 34.0);
-    
+
     self.tableView.frame = CGRectMake(0.0, 154.0, width, height - 154.0);
     self.tableView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 100.0, 0.0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 4;
+    return self.conversations.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     MessageCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MessageCell" forIndexPath:indexPath];
-    [cell configureWithIndex:indexPath.row];
+    NSDictionary<NSString *, id> *conversation = self.conversations[indexPath.row];
+    [cell configureWithTitle:conversation[@"title"]
+                     message:conversation[@"lastMessage"]
+                       index:indexPath.row];
     return cell;
 }
 
@@ -165,9 +185,88 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSDictionary<NSString *, id> *conversation = self.conversations[indexPath.row];
     FriendChatViewController *viewController = [[FriendChatViewController alloc] init];
+    viewController.conversationUserId = conversation[@"userId"];
+    viewController.conversationTitle = conversation[@"title"];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (void)loadUsers {
+    [[LuketDataService sharedService] loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+        if (error || !data) {
+            return;
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.users = data.userList ?: @[];
+            [self reloadConversations];
+        });
+    }];
+}
+
+- (void)reloadConversations {
+    NSMutableArray<NSDictionary<NSString *, id> *> *conversations = [NSMutableArray array];
+    NSString *bundleIdentifier = NSBundle.mainBundle.bundleIdentifier;
+    NSDictionary *defaults = bundleIdentifier.length > 0 ? [NSUserDefaults.standardUserDefaults persistentDomainForName:bundleIdentifier] : @{};
+
+    for (NSString *key in defaults.allKeys) {
+        if (![key hasPrefix:MessageChatMessagesKeyPrefix]) {
+            continue;
+        }
+
+        NSArray *messages = [NSUserDefaults.standardUserDefaults arrayForKey:key];
+        NSDictionary *lastMessage = messages.lastObject;
+        NSString *messageText = [lastMessage[@"text"] isKindOfClass:NSString.class] ? lastMessage[@"text"] : @"";
+        if (messageText.length == 0) {
+            continue;
+        }
+
+        NSString *userId = [key substringFromIndex:MessageChatMessagesKeyPrefix.length];
+        NSString *updatedTimeKey = [NSString stringWithFormat:@"%@%@", MessageChatUpdatedTimeKeyPrefix, userId];
+        NSString *titleKey = [NSString stringWithFormat:@"%@%@", MessageChatTitleKeyPrefix, userId];
+        NSString *cachedTitle = [NSUserDefaults.standardUserDefaults stringForKey:titleKey];
+        NSTimeInterval updatedTime = [NSUserDefaults.standardUserDefaults doubleForKey:updatedTimeKey];
+        [conversations addObject:@{
+            @"userId": userId ?: @"",
+            @"title": cachedTitle.length > 0 ? cachedTitle : [self displayNameForUserId:userId],
+            @"lastMessage": messageText,
+            @"updatedTime": @(updatedTime)
+        }];
+    }
+
+    [conversations sortUsingComparator:^NSComparisonResult(NSDictionary<NSString *,id> *first, NSDictionary<NSString *,id> *second) {
+        NSTimeInterval firstTime = [first[@"updatedTime"] doubleValue];
+        NSTimeInterval secondTime = [second[@"updatedTime"] doubleValue];
+        if (firstTime > secondTime) {
+            return NSOrderedAscending;
+        }
+        if (firstTime < secondTime) {
+            return NSOrderedDescending;
+        }
+        return NSOrderedSame;
+    }];
+
+    self.conversations = conversations.copy;
+    [self.tableView reloadData];
+}
+
+- (NSString *)displayNameForUserId:(NSString *)userId {
+    for (LuketUser *user in self.users) {
+        if (![user.userId isEqualToString:userId]) {
+            continue;
+        }
+        if (user.nickname.length > 0) {
+            return user.nickname;
+        }
+        if (user.email.length > 0) {
+            return user.email;
+        }
+        break;
+    }
+
+    return userId.length > 0 ? userId : @"MotoChat";
 }
 
 - (UIColor *)pageBackgroundColor {

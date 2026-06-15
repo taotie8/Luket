@@ -46,7 +46,7 @@ static NSArray<NSString *> *LuketStringArrayValue(id value) {
     if (![value isKindOfClass:NSArray.class]) {
         return @[];
     }
-    
+
     NSMutableArray<NSString *> *strings = [NSMutableArray array];
     for (id item in (NSArray *)value) {
         NSString *string = LuketNullableStringValue(item);
@@ -61,7 +61,7 @@ static NSArray *LuketModelArrayValue(id value, Class modelClass) {
     if (![value isKindOfClass:NSArray.class]) {
         return @[];
     }
-    
+
     NSMutableArray *models = [NSMutableArray array];
     for (id item in (NSArray *)value) {
         if ([item isKindOfClass:NSDictionary.class] && [modelClass respondsToSelector:@selector(modelWithDictionary:)]) {
@@ -316,6 +316,18 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
         _title = LuketStringValue(dictionary[@"title"]);
         _groupDescription = LuketStringValue(dictionary[@"description"]);
         _coverUrl = LuketStringValue(dictionary[@"coverUrl"]);
+        if (_coverUrl.length == 0) {
+            _coverUrl = LuketStringValue(dictionary[@"cover"]);
+        }
+        if (_coverUrl.length == 0) {
+            _coverUrl = LuketStringValue(dictionary[@"imageUrl"]);
+        }
+        if (_coverUrl.length == 0) {
+            _coverUrl = LuketStringValue(dictionary[@"image"]);
+        }
+        if (_coverUrl.length == 0) {
+            _coverUrl = LuketStringValue(dictionary[@"avatarUrl"]);
+        }
         _creatorUserId = LuketStringValue(dictionary[@"creatorUserId"]);
         _createTime = LuketStringValue(dictionary[@"createTime"]);
         _memberIds = LuketStringArrayValue(dictionary[@"memberIds"]);

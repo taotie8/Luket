@@ -47,6 +47,11 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
 @property (nonatomic, copy, readwrite) NSString *currentLoginUserId;
 @property (nonatomic, strong, readwrite) LuketUser *currentUser;
 @property (nonatomic, copy, readwrite) NSString *authToken;
+@property (nonatomic, strong, readwrite) LuketGlobalData *cachedGlobalData;
+@property (nonatomic, assign) BOOL loadingGlobalData;
+@property (nonatomic, strong) NSMutableArray<LuketGlobalDataCompletion> *pendingGlobalDataCompletions;
+
+- (void)saveGlobalData:(LuketGlobalData *)globalData refreshAfterSave:(BOOL)refreshAfterSave completion:(LuketActionCompletion)completion;
 
 @end
 
@@ -65,6 +70,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     self = [super init];
     if (self) {
         _client = LuketAPIClient.sharedClient;
+        _pendingGlobalDataCompletions = [NSMutableArray array];
         NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
         _authToken = [defaults stringForKey:LuketAuthTokenKey];
         _currentLoginUserId = [defaults stringForKey:LuketStoredUserIdKey];
@@ -106,6 +112,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     self.authToken = nil;
     self.currentUser = nil;
     self.currentLoginUserId = nil;
+    self.cachedGlobalData = nil;
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketAuthTokenKey];
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredUserIdKey];
     [NSUserDefaults.standardUserDefaults removeObjectForKey:LuketStoredUserNameKey];
@@ -120,31 +127,97 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
 }
 
 - (void)fetchGlobalDataWithCompletion:(LuketGlobalDataCompletion)completion {
+    [self loadGlobalDataIfNeededWithCompletion:completion];
+}
+
+- (void)loadGlobalDataIfNeededWithCompletion:(LuketGlobalDataCompletion)completion {
     if (!completion) {
         return;
     }
-    
+
+    if (self.cachedGlobalData) {
+        completion(self.cachedGlobalData, nil);
+        return;
+    }
+
+    [self refreshGlobalDataWithCompletion:completion];
+}
+
+- (void)refreshGlobalDataWithCompletion:(LuketGlobalDataCompletion)completion {
+    if (!completion) {
+        return;
+    }
+
+    if (self.loadingGlobalData) {
+        [self.pendingGlobalDataCompletions addObject:[completion copy]];
+        return;
+    }
+
+    self.loadingGlobalData = YES;
+    [self.pendingGlobalDataCompletions addObject:[completion copy]];
+
     [self.client getPath:LuketAPIPathGlobalData parameters:nil completion:^(id responseObject, NSError *error) {
+        self.loadingGlobalData = NO;
+        NSArray<LuketGlobalDataCompletion> *completions = self.pendingGlobalDataCompletions.copy;
+        [self.pendingGlobalDataCompletions removeAllObjects];
+
         if (error) {
-            completion(nil, error);
+            for (LuketGlobalDataCompletion pendingCompletion in completions) {
+                pendingCompletion(nil, error);
+            }
             return;
         }
 
         NSDictionary *dictionary = [self globalDataDictionaryFromResponse:responseObject];
         LuketGlobalData *globalData = [LuketGlobalData modelWithDictionary:dictionary ?: @{}];
         [self ensureCurrentUserExistsInGlobalData:globalData completion:^(LuketGlobalData *updatedGlobalData) {
-            completion(updatedGlobalData, nil);
+            self.cachedGlobalData = updatedGlobalData;
+            for (LuketGlobalDataCompletion pendingCompletion in completions) {
+                pendingCompletion(updatedGlobalData, nil);
+            }
         }];
     }];
 }
 
+- (void)updateCachedGlobalData:(LuketGlobalData *)globalData {
+    self.cachedGlobalData = globalData;
+}
+
 - (void)saveGlobalData:(LuketGlobalData *)globalData completion:(LuketActionCompletion)completion {
+    [self saveGlobalData:globalData refreshAfterSave:YES completion:completion];
+}
+
+- (void)saveGlobalData:(LuketGlobalData *)globalData refreshAfterSave:(BOOL)refreshAfterSave completion:(LuketActionCompletion)completion {
     NSDictionary *configInfo = globalData ? [globalData dictionaryRepresentation] : @{};
     NSDictionary *parameters = @{
         @"id": LuketGlobalConfigId,
         @"configInfo": configInfo ?: @{}
     };
-    [self performActionAtPath:LuketAPIPathSaveGlobalData parameters:parameters completion:completion];
+    [self performActionAtPath:LuketAPIPathSaveGlobalData parameters:parameters completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        if (!success || error) {
+            if (completion) {
+                completion(success, message, error);
+            }
+            return;
+        }
+
+        self.cachedGlobalData = globalData;
+        if (!refreshAfterSave) {
+            if (completion) {
+                completion(success, message, error);
+            }
+            return;
+        }
+
+        [self refreshGlobalDataWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable refreshError) {
+            if (refreshError) {
+                NSLog(@"[Luket] Refresh global data after save failed: %@", refreshError.localizedDescription);
+            }
+            if (completion) {
+                completion(success, message, nil);
+            }
+        }];
+    }];
 }
 
 - (void)ensureCurrentUserExistsInGlobalData:(LuketGlobalData *)globalData completion:(void (^)(LuketGlobalData *updatedGlobalData))completion {
@@ -162,7 +235,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     [users addObject:currentUser];
     globalData.userList = users.copy;
 
-    [self saveGlobalData:globalData completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+    [self saveGlobalData:globalData refreshAfterSave:NO completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
         if (!success || error) {
             NSLog(@"[Luket] Save current user to global data failed: %@", error.localizedDescription ?: message);
         }
@@ -225,13 +298,9 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
 }
 
 - (void)fetchUsersWithCompletion:(LuketUsersCompletion)completion {
-    [self fetchModelListAtPath:LuketAPIPathUserList
-                    parameter:nil
-                          key:@"userList"
-                   modelClass:LuketUser.class
-                    completion:^(NSArray *models, NSError *error) {
+    [self loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
         if (completion) {
-            completion(models, error);
+            completion(data.userList ?: @[], error);
         }
     }];
 }
@@ -304,17 +373,16 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
 }
 
 - (void)fetchPostsWithCategory:(NSString *)postCategory completion:(LuketPostsCompletion)completion {
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (postCategory.length > 0) {
-        parameters[@"postCategory"] = postCategory;
-    }
-    [self fetchModelListAtPath:LuketAPIPathPostList
-                    parameter:parameters.copy
-                          key:@"postList"
-                   modelClass:LuketPost.class
-                    completion:^(NSArray *models, NSError *error) {
+    [self loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+        NSArray<LuketPost *> *posts = data.postList ?: @[];
+        if (postCategory.length > 0) {
+            NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(LuketPost *post, NSDictionary<NSString *,id> *bindings) {
+                return [post.postCategory isEqualToString:postCategory];
+            }];
+            posts = [posts filteredArrayUsingPredicate:predicate];
+        }
         if (completion) {
-            completion(models, error);
+            completion(posts, error);
         }
     }];
 }
@@ -393,13 +461,9 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
 }
 
 - (void)fetchGroupChatsWithCompletion:(LuketGroupChatsCompletion)completion {
-    [self fetchModelListAtPath:LuketAPIPathGroupList
-                    parameter:nil
-                          key:@"groupChats"
-                   modelClass:LuketGroupChat.class
-                    completion:^(NSArray *models, NSError *error) {
+    [self loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
         if (completion) {
-            completion(models, error);
+            completion(data.groupChats ?: @[], error);
         }
     }];
 }
@@ -545,13 +609,13 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if (!completion) {
         return;
     }
-    
+
     [self.client getPath:path parameters:parameters completion:^(id responseObject, NSError *error) {
         if (error) {
             completion(@[], error);
             return;
         }
-        
+
         NSArray *items = [self arrayPayloadFromResponse:responseObject key:key];
         NSMutableArray *models = [NSMutableArray arrayWithCapacity:items.count];
         for (id item in items) {
@@ -598,13 +662,13 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if (!completion) {
         return;
     }
-    
+
     [self.client postPath:path parameters:parameters completion:^(id responseObject, NSError *error) {
         if (error) {
             completion(nil, error);
             return;
         }
-        
+
         NSDictionary *item = [self dictionaryPayloadFromResponse:responseObject key:key];
         id model = nil;
         if ([item isKindOfClass:NSDictionary.class] && [modelClass respondsToSelector:@selector(modelWithDictionary:)]) {
@@ -618,13 +682,13 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if (!completion) {
         return;
     }
-    
+
     [self.client postPath:path parameters:parameters completion:^(id responseObject, NSError *error) {
         if (error) {
             completion(NO, error.localizedDescription ?: @"Request failed", error);
             return;
         }
-        
+
         NSDictionary *dictionary = [self dictionaryPayloadFromResponse:responseObject key:nil];
         BOOL success = YES;
         NSString *message = @"";
@@ -969,17 +1033,17 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if ([responseObject isKindOfClass:NSArray.class]) {
         return responseObject;
     }
-    
+
     if (![responseObject isKindOfClass:NSDictionary.class]) {
         return @[];
     }
-    
+
     NSDictionary *dictionary = responseObject;
     id directValue = key.length > 0 ? dictionary[key] : nil;
     if ([directValue isKindOfClass:NSArray.class]) {
         return directValue;
     }
-    
+
     id dataValue = dictionary[@"data"];
     if ([dataValue isKindOfClass:NSArray.class]) {
         return dataValue;
@@ -987,7 +1051,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if ([dataValue isKindOfClass:NSDictionary.class] && key.length > 0 && [dataValue[key] isKindOfClass:NSArray.class]) {
         return dataValue[key];
     }
-    
+
     return @[];
 }
 
@@ -995,13 +1059,13 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     if (![responseObject isKindOfClass:NSDictionary.class]) {
         return @{};
     }
-    
+
     NSDictionary *dictionary = responseObject;
     id directValue = key.length > 0 ? dictionary[key] : nil;
     if ([directValue isKindOfClass:NSDictionary.class]) {
         return directValue;
     }
-    
+
     id dataValue = dictionary[@"data"];
     if ([dataValue isKindOfClass:NSDictionary.class]) {
         if (key.length > 0 && [dataValue[key] isKindOfClass:NSDictionary.class]) {
@@ -1009,7 +1073,7 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
         }
         return dataValue;
     }
-    
+
     return dictionary;
 }
 

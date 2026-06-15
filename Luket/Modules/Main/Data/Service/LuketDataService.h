@@ -30,6 +30,7 @@ typedef void (^LuketActionCompletion)(BOOL success, NSString *message, NSError *
 @property (nonatomic, copy, nullable, readonly) NSString *currentLoginUserId;
 @property (nonatomic, strong, nullable, readonly) LuketUser *currentUser;
 @property (nonatomic, copy, nullable, readonly) NSString *authToken;
+@property (nonatomic, strong, nullable, readonly) LuketGlobalData *cachedGlobalData;
 
 + (instancetype)sharedService;
 - (void)configureBaseURLString:(NSString *)baseURLString;
@@ -37,6 +38,9 @@ typedef void (^LuketActionCompletion)(BOOL success, NSString *message, NSError *
 - (void)clearAuthToken;
 
 - (void)fetchGlobalDataWithCompletion:(LuketGlobalDataCompletion)completion;
+- (void)loadGlobalDataIfNeededWithCompletion:(LuketGlobalDataCompletion)completion;
+- (void)refreshGlobalDataWithCompletion:(LuketGlobalDataCompletion)completion;
+- (void)updateCachedGlobalData:(LuketGlobalData *)globalData;
 - (void)saveGlobalData:(LuketGlobalData *)globalData completion:(LuketActionCompletion)completion;
 
 - (void)fetchUsersWithCompletion:(LuketUsersCompletion)completion;

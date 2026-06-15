@@ -23,6 +23,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 @property (nonatomic, copy) void (^avatarTapHandler)(void);
 
 - (void)configureWithPost:(LuketPost *)post index:(NSUInteger)index;
+- (void)configureWithPost:(LuketPost *)post author:(LuketUser *)author index:(NSUInteger)index;
 
 @end
 
@@ -72,7 +73,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
         self.avatarImageView.clipsToBounds = YES;
         self.avatarImageView.layer.cornerRadius = 12.0;
         [self.containerView addSubview:self.avatarImageView];
-        
+
         UIButton *avatarButton = [UIButton buttonWithType:UIButtonTypeCustom];
         avatarButton.frame = self.avatarImageView.frame;
         [avatarButton addTarget:self action:@selector(avatarButtonTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -91,7 +92,9 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [super prepareForReuse];
     self.avatarTapHandler = nil;
     [self.photoImageView sd_cancelCurrentImageLoad];
+    [self.avatarImageView sd_cancelCurrentImageLoad];
     self.photoImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
+    self.avatarImageView.image = [UIImage imageNamed:@"HomeHeroImage"];
     self.photoImageView.transform = CGAffineTransformIdentity;
     self.playIconImageView.hidden = YES;
 }
@@ -106,6 +109,10 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 }
 
 - (void)configureWithPost:(LuketPost *)post index:(NSUInteger)index {
+    [self configureWithPost:post author:nil index:index];
+}
+
+- (void)configureWithPost:(LuketPost *)post author:(LuketUser *)author index:(NSUInteger)index {
     (void)index;
     self.textLabel.text = post.content.length > 0 ? post.content : @"";
     self.photoImageView.transform = CGAffineTransformIdentity;
@@ -121,6 +128,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
         coverIdentifier = firstMediaIdentifier.length > 0 ? firstMediaIdentifier : post.coverUrl;
     }
     [self setCoverImageWithIdentifier:coverIdentifier];
+    [self setAvatarImageWithIdentifier:author.avatarUrl];
 }
 
 - (void)setCoverImageWithIdentifier:(NSString *)identifier {
@@ -144,6 +152,29 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self.photoImageView sd_setImageWithURL:imageURL
                            placeholderImage:placeholderImage
                                     options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
+}
+
+- (void)setAvatarImageWithIdentifier:(NSString *)identifier {
+    NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    UIImage *placeholderImage = [UIImage imageNamed:@"HomeHeroImage"];
+
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:trimmedIdentifier];
+    if (localImage) {
+        [self.avatarImageView sd_cancelCurrentImageLoad];
+        self.avatarImageView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:trimmedIdentifier];
+    if (!imageURL) {
+        [self.avatarImageView sd_cancelCurrentImageLoad];
+        self.avatarImageView.image = placeholderImage;
+        return;
+    }
+
+    [self.avatarImageView sd_setImageWithURL:imageURL
+                            placeholderImage:placeholderImage
+                                     options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 - (void)avatarButtonTapped {
@@ -263,7 +294,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self.collectionView reloadData];
 
     __weak typeof(self) weakSelf = self;
-    [[LuketDataService sharedService] fetchGlobalDataWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+    [[LuketDataService sharedService] loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (!strongSelf) {
             return;
@@ -292,8 +323,8 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     HomeFeedCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"HomeFeedCell" forIndexPath:indexPath];
     LuketPost *post = self.visiblePosts[indexPath.item];
-    [cell configureWithPost:post index:indexPath.item];
-    
+    [cell configureWithPost:post author:[self userWithId:post.publishUserId] index:indexPath.item];
+
     __weak typeof(self) weakSelf = self;
     cell.avatarTapHandler = ^{
         [weakSelf presentUserProfileViewControllerForUserId:post.publishUserId];

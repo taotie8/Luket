@@ -9,6 +9,7 @@
 #import "../Common/LuketMediaResource.h"
 #import "../Data/Service/LuketDataService.h"
 #import "../Report/ReportViewController.h"
+#import "../Message/FriendChatViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
 typedef NS_ENUM(NSInteger, UserProfileViewTag) {
@@ -74,7 +75,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     self.postTexts = @[
         @"Every time I\nswim, I feel ...",
         @"Every time I\nswim, I feel ...",
@@ -111,80 +112,80 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     topBarView.tag = UserProfileViewTagTopBar;
     topBarView.backgroundColor = UIColor.whiteColor;
     [self.view addSubview:topBarView];
-    
+
     UIButton *backButton = [UIButton buttonWithType:UIButtonTypeCustom];
     backButton.tag = UserProfileViewTagBackButton;
     [backButton setImage:[[UIImage imageNamed:@"AuthBackIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [topBarView addSubview:backButton];
-    
+
     UIImageView *topAvatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
     topAvatarView.tag = UserProfileViewTagTopAvatar;
     topAvatarView.contentMode = UIViewContentModeScaleAspectFill;
     topAvatarView.clipsToBounds = YES;
     [topBarView addSubview:topAvatarView];
-    
+
     UILabel *nameLabel = [[UILabel alloc] init];
     nameLabel.tag = UserProfileViewTagName;
     nameLabel.text = @"Freya";
     nameLabel.textColor = [self darkTextColor];
     nameLabel.font = [self titleFontWithSize:20.0];
     [topBarView addSubview:nameLabel];
-    
+
     UIButton *followButton = [UIButton buttonWithType:UIButtonTypeCustom];
     followButton.tag = UserProfileViewTagAddButton;
     [followButton addTarget:self action:@selector(followButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [topBarView addSubview:followButton];
-    
+
     UIButton *moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
     moreButton.tag = UserProfileViewTagMoreButton;
     [moreButton setImage:[[UIImage imageNamed:@"DetailMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [moreButton addTarget:self action:@selector(moreButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [topBarView addSubview:moreButton];
-    
+
     UIImageView *mainAvatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
     mainAvatarView.tag = UserProfileViewTagMainAvatar;
     mainAvatarView.contentMode = UIViewContentModeScaleAspectFill;
     mainAvatarView.clipsToBounds = YES;
     [self.view addSubview:mainAvatarView];
-    
+
     UILabel *followTitleLabel = [self statsTitleLabelWithText:@"Follow"];
     followTitleLabel.tag = UserProfileViewTagFollowTitle;
     [self.view addSubview:followTitleLabel];
-    
+
     UILabel *followCountLabel = [self statsCountLabelWithText:@"333"];
     followCountLabel.tag = UserProfileViewTagFollowCount;
     [self.view addSubview:followCountLabel];
-    
+
     UILabel *fansTitleLabel = [self statsTitleLabelWithText:@"Fans"];
     fansTitleLabel.tag = UserProfileViewTagFansTitle;
     [self.view addSubview:fansTitleLabel];
-    
+
     UILabel *fansCountLabel = [self statsCountLabelWithText:@"333"];
     fansCountLabel.tag = UserProfileViewTagFansCount;
     [self.view addSubview:fansCountLabel];
-    
+
     UILabel *displayNameLabel = [[UILabel alloc] init];
     displayNameLabel.tag = UserProfileViewTagDisplayName;
     displayNameLabel.text = @"Sienna";
     displayNameLabel.textColor = [self darkTextColor];
     displayNameLabel.font = [self titleFontWithSize:20.0];
     [self.view addSubview:displayNameLabel];
-    
+
     UILabel *bioLabel = [[UILabel alloc] init];
     bioLabel.tag = UserProfileViewTagBio;
     bioLabel.text = @"My motorcycle, my adventure partner.";
     bioLabel.textColor = [UIColor colorWithRed:128.0 / 255.0 green:154.0 / 255.0 blue:183.0 / 255.0 alpha:1.0];
     bioLabel.font = [UIFont systemFontOfSize:14.0];
     [self.view addSubview:bioLabel];
-    
+
     UILabel *postTitleLabel = [[UILabel alloc] init];
     postTitleLabel.tag = UserProfileViewTagPostTitle;
     postTitleLabel.text = @"Post";
     postTitleLabel.textColor = [self darkTextColor];
     postTitleLabel.font = [self titleFontWithSize:20.0];
     [self.view addSubview:postTitleLabel];
-    
+
     UIImageView *postIconView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ProfilePostIcon"]];
     postIconView.tag = UserProfileViewTagPostIcon;
     postIconView.contentMode = UIViewContentModeScaleAspectFit;
@@ -194,7 +195,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 - (void)setupCollectionView {
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
     layout.scrollDirection = UICollectionViewScrollDirectionVertical;
-    
+
     self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     self.collectionView.backgroundColor = UIColor.clearColor;
     self.collectionView.showsVerticalScrollIndicator = NO;
@@ -207,7 +208,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 
 - (void)setupCreateButton {
     self.createButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.createButton setImage:[[UIImage imageNamed:@"ProfileCreateButton"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+    [self.createButton setImage:[[UIImage imageNamed:@"chatUser"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [self.createButton addTarget:self action:@selector(createButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:self.createButton];
 }
@@ -357,68 +358,68 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     CGFloat height = CGRectGetHeight(self.view.bounds);
     CGFloat scale = width / 375.0;
     CGFloat safeTop = self.view.safeAreaInsets.top;
-    
+
     UIImageView *backgroundView = [self.view viewWithTag:UserProfileViewTagBackground];
     backgroundView.frame = CGRectMake(0.0, 0.0, width, 260.0 * scale);
-    
+
     UIView *topBarView = [self.view viewWithTag:UserProfileViewTagTopBar];
     topBarView.frame = CGRectMake(20.0, safeTop + 5.0, width - 40.0, 56.0);
     topBarView.layer.cornerRadius = 12.0;
-    
+
     UIButton *backButton = [topBarView viewWithTag:UserProfileViewTagBackButton];
     backButton.frame = CGRectMake(16.0, 0.0, 32.0, 56.0);
-    
+
     UIImageView *topAvatarView = [topBarView viewWithTag:UserProfileViewTagTopAvatar];
     topAvatarView.frame = CGRectMake(60.0, 8.0, 40.0, 40.0);
     topAvatarView.layer.cornerRadius = 20.0;
-    
+
     UILabel *nameLabel = [topBarView viewWithTag:UserProfileViewTagName];
     [nameLabel sizeToFit];
     nameLabel.frame = CGRectMake(112.0, 15.0, CGRectGetWidth(nameLabel.bounds), 26.0);
-    
+
     UIButton *followButton = [topBarView viewWithTag:UserProfileViewTagAddButton];
     followButton.frame = CGRectMake(CGRectGetMaxX(nameLabel.frame) + 10.0, 16.0, 36.0, 24.0);
-    
+
     UIButton *moreButton = [topBarView viewWithTag:UserProfileViewTagMoreButton];
     moreButton.frame = CGRectMake(CGRectGetWidth(topBarView.bounds) - 44.0, 10.0, 36.0, 36.0);
-    
+
     [self updateFollowButtons];
-    
+
     CGFloat avatarY = CGRectGetMaxY(topBarView.frame) + 37.0;
     UIImageView *mainAvatarView = [self.view viewWithTag:UserProfileViewTagMainAvatar];
     mainAvatarView.frame = CGRectMake(20.0, avatarY, 82.0, 82.0);
     mainAvatarView.layer.cornerRadius = 41.0;
-    
+
     UILabel *followTitleLabel = [self.view viewWithTag:UserProfileViewTagFollowTitle];
     followTitleLabel.frame = CGRectMake(width - 167.0, avatarY + 36.0, 72.0, 24.0);
-    
+
     UILabel *followCountLabel = [self.view viewWithTag:UserProfileViewTagFollowCount];
     followCountLabel.frame = CGRectMake(width - 167.0, avatarY + 66.0, 72.0, 22.0);
-    
+
     UILabel *fansTitleLabel = [self.view viewWithTag:UserProfileViewTagFansTitle];
     fansTitleLabel.frame = CGRectMake(width - 78.0, avatarY + 36.0, 72.0, 24.0);
-    
+
     UILabel *fansCountLabel = [self.view viewWithTag:UserProfileViewTagFansCount];
     fansCountLabel.frame = CGRectMake(width - 78.0, avatarY + 66.0, 72.0, 22.0);
-    
+
     UILabel *displayNameLabel = [self.view viewWithTag:UserProfileViewTagDisplayName];
     displayNameLabel.frame = CGRectMake(20.0, avatarY + 100.0, 180.0, 28.0);
-    
+
     UILabel *bioLabel = [self.view viewWithTag:UserProfileViewTagBio];
     bioLabel.frame = CGRectMake(20.0, avatarY + 135.0, width - 40.0, 22.0);
-    
+
     UILabel *postTitleLabel = [self.view viewWithTag:UserProfileViewTagPostTitle];
     postTitleLabel.frame = CGRectMake(20.0, avatarY + 177.0, 70.0, 28.0);
-    
+
     UIImageView *postIconView = [self.view viewWithTag:UserProfileViewTagPostIcon];
     postIconView.frame = CGRectMake(68.0, avatarY + 180.0, 24.0, 24.0);
-    
+
     CGFloat collectionTop = avatarY + 215.0;
     self.collectionView.frame = CGRectMake(0.0, collectionTop, width, height - collectionTop);
     self.collectionView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 90.0, 0.0);
     self.collectionView.scrollIndicatorInsets = self.collectionView.contentInset;
     [self.collectionView.collectionViewLayout invalidateLayout];
-    
+
     self.createButton.frame = CGRectMake((width - 150.0) / 2.0, height - self.view.safeAreaInsets.bottom - 57.0, 150.0, 55.0);
 }
 
@@ -479,23 +480,29 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 }
 
 - (void)createButtonTapped {
+    FriendChatViewController *viewController = [[FriendChatViewController alloc] init];
+    viewController.conversationUserId = self.profileUser.userId ?: @"";
+    viewController.conversationTitle = [self displayNameForUser:self.profileUser];
+    viewController.conversationAvatarIdentifier = self.profileUser.avatarUrl ?: @"";
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)moreButtonTapped {
     MoreActionSheetView *actionSheetView = [[MoreActionSheetView alloc] initWithFrame:self.view.bounds];
-    
+
     __weak typeof(self) weakSelf = self;
     actionSheetView.reportHandler = ^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (!strongSelf) {
             return;
         }
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [strongSelf presentReportViewController];
         });
     };
-    
+
     [actionSheetView showInView:self.view];
 }
 
@@ -503,7 +510,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     if (self.presentedViewController) {
         return;
     }
-    
+
     ReportViewController *viewController = [[ReportViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
@@ -609,7 +616,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
     followButton.hidden = currentUserId.length > 0 && [currentUserId isEqualToString:self.profileUser.userId];
     NSString *imageName = self.followed ? @"DetailFollowRemoveButton" : @"DetailFollowAddButton";
-    
+
     [followButton setImage:[[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
 }
 

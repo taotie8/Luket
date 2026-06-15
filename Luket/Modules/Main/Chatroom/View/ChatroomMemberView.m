@@ -4,6 +4,8 @@
 //
 
 #import "ChatroomMemberView.h"
+#import "../../Common/LuketMediaResource.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 @interface ChatroomMemberView ()
 
@@ -59,6 +61,31 @@
         ]];
     }
     return self;
+}
+
+- (void)configureWithName:(NSString *)name avatarIdentifier:(NSString *)avatarIdentifier showCreatorBadge:(BOOL)showCreatorBadge {
+    self.nameLabel.text = name ?: @"";
+    self.creatorBadgeView.hidden = !showCreatorBadge;
+    [self setAvatarWithIdentifier:avatarIdentifier];
+}
+
+- (void)setAvatarWithIdentifier:(NSString *)identifier {
+    UIImage *placeholderImage = [UIImage imageNamed:@"HomeHeroImage"];
+    UIImage *localImage = [UIImage imageNamed:identifier];
+    if (localImage) {
+        [self.avatarView sd_cancelCurrentImageLoad];
+        self.avatarView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    if (!imageURL) {
+        [self.avatarView sd_cancelCurrentImageLoad];
+        self.avatarView.image = placeholderImage;
+        return;
+    }
+
+    [self.avatarView sd_setImageWithURL:imageURL placeholderImage:placeholderImage];
 }
 
 - (UIColor *)titleColor {

@@ -4,6 +4,8 @@
 //
 
 #import "ProfileUserListCell.h"
+#import "../../../Common/LuketMediaResource.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 @interface ProfileUserListCell ()
 
@@ -63,6 +65,50 @@
 - (void)configureWithName:(NSString *)name actionImageName:(NSString *)imageName {
     self.nameLabel.text = name;
     [self.actionButton setImage:[[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+}
+
+- (void)configureWithUser:(LuketUser *)user actionImageName:(NSString *)imageName {
+    self.nameLabel.text = [self displayNameForUser:user];
+    [self setImageView:self.avatarImageView identifier:user.avatarUrl placeholderImageName:@"HomeHeroImage"];
+    [self.actionButton setImage:[[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+}
+
+- (UIButton *)userActionButton {
+    return self.actionButton;
+}
+
+- (NSString *)displayNameForUser:(LuketUser *)user {
+    if (user.nickname.length > 0) {
+        return user.nickname;
+    }
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    if (user.userId.length > 0) {
+        return user.userId;
+    }
+    return @"User";
+}
+
+- (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {
+    UIImage *placeholderImage = [UIImage imageNamed:placeholderImageName];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:identifier];
+    if (localImage) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    if (!imageURL) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = placeholderImage;
+        return;
+    }
+
+    [imageView sd_setImageWithURL:imageURL
+                 placeholderImage:placeholderImage
+                          options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 - (UIColor *)darkTextColor {
