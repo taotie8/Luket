@@ -986,8 +986,25 @@
         if (!success || error) {
             strongSelf.globalData.blackList = previousBlackList;
             NSLog(@"[Luket] Save block user failed: %@", error.localizedDescription ?: message);
+            return;
         }
+
+        [strongSelf notifyBlockedUsersDidChange];
+        [strongSelf dismissToFirstLevelPage];
     }];
+}
+
+- (void)notifyBlockedUsersDidChange {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"LuketBlockedUsersDidChangeNotification" object:nil];
+}
+
+- (void)dismissToFirstLevelPage {
+    UIViewController *presenter = self.presentingViewController;
+    while (presenter.presentingViewController) {
+        presenter = presenter.presentingViewController;
+    }
+
+    [presenter dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)updateGlobalDataBlackListForUserId:(NSString *)userId targetUserId:(NSString *)targetUserId {

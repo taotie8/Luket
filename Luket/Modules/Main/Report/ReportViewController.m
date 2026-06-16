@@ -11,6 +11,7 @@
 @property (nonatomic, strong) UIView *contentView;
 @property (nonatomic, strong) UITextView *descriptionTextView;
 @property (nonatomic, strong) UILabel *placeholderLabel;
+@property (nonatomic, strong) UILabel *descriptionHintLabel;
 @property (nonatomic, strong) NSArray<UIButton *> *typeButtons;
 @property (nonatomic, assign) NSInteger selectedIndex;
 @property (nonatomic, assign) CGFloat keyboardHeight;
@@ -64,7 +65,14 @@
     }
     self.typeButtons = buttons;
     [self updateTypeButtons];
-    
+
+    self.descriptionHintLabel = [[UILabel alloc] init];
+    self.descriptionHintLabel.text = @"Describe what happened so our team can review the report more accurately.";
+    self.descriptionHintLabel.textColor = [self darkTextColor];
+    self.descriptionHintLabel.font = [UIFont systemFontOfSize:14.0 weight:UIFontWeightMedium];
+    self.descriptionHintLabel.numberOfLines = 0;
+    [self.contentView addSubview:self.descriptionHintLabel];
+
     UIImageView *formCardView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ReportDescriptionCard"]];
     formCardView.tag = 1002;
     formCardView.contentMode = UIViewContentModeScaleToFill;
@@ -153,7 +161,11 @@
     for (UIButton *button in self.typeButtons) {
         lastButtonBottom = MAX(lastButtonBottom, CGRectGetMaxY(button.frame));
     }
-    formCardView.frame = CGRectMake(20.0, lastButtonBottom + 5.0, formCardWidth, formCardHeight);
+
+    CGSize hintSize = [self.descriptionHintLabel sizeThatFits:CGSizeMake(width - 40.0, CGFLOAT_MAX)];
+    self.descriptionHintLabel.frame = CGRectMake(20.0, lastButtonBottom + 16.0, width - 40.0, ceil(hintSize.height));
+
+    formCardView.frame = CGRectMake(20.0, CGRectGetMaxY(self.descriptionHintLabel.frame) + 10.0, formCardWidth, formCardHeight);
     
     self.descriptionTextView.frame = CGRectMake(16.0, 77.0, CGRectGetWidth(formCardView.bounds) - 32.0, 153.0);
     self.placeholderLabel.frame = CGRectMake(32.0, 90.0, CGRectGetWidth(formCardView.bounds) - 64.0, 20.0);
@@ -210,6 +222,16 @@
 
 - (void)submitButtonTapped {
     [self.view endEditing:YES];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Report submitted successfully."
+                                                                             message:@"Thank you. We will review it as soon as possible."
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction * _Nonnull action) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)backButtonTapped {

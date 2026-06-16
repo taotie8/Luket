@@ -23,7 +23,6 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UILabel *messageLabel;
-@property (nonatomic, strong) UILabel *moreLabel;
 
 @end
 
@@ -57,12 +56,6 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
         self.messageLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         [self.contentView addSubview:self.messageLabel];
 
-        self.moreLabel = [[UILabel alloc] init];
-        self.moreLabel.text = @"⋮";
-        self.moreLabel.textColor = [self titleColor];
-        self.moreLabel.textAlignment = NSTextAlignmentCenter;
-        self.moreLabel.font = [UIFont systemFontOfSize:34.0 weight:UIFontWeightBold];
-        [self.contentView addSubview:self.moreLabel];
     }
     return self;
 }
@@ -76,9 +69,9 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
     self.cardImageView.frame = CGRectMake(20.0, 0.0, cardWidth, 73.0);
     self.avatarImageView.frame = CGRectMake(40.0, 17.0, 40.0, 40.0);
     self.avatarImageView.layer.cornerRadius = 20.0;
-    self.titleLabel.frame = CGRectMake(100.0, 16.0, 170.0, 24.0);
-    self.messageLabel.frame = CGRectMake(100.0, 43.0, 220.0, 22.0);
-    self.moreLabel.frame = CGRectMake(width - 86.0, 12.0, 28.0, 50.0);
+    CGFloat textWidth = CGRectGetMaxX(self.cardImageView.frame) - 100.0 - 20.0;
+    self.titleLabel.frame = CGRectMake(100.0, 16.0, textWidth, 24.0);
+    self.messageLabel.frame = CGRectMake(100.0, 43.0, textWidth, 22.0);
 }
 
 - (void)configureWithTitle:(NSString *)title message:(NSString *)message index:(NSInteger)index {
@@ -116,10 +109,18 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
     [self setupViews];
     [self loadUsers];
     [self reloadConversations];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(blockedUsersDidChange)
+                                                 name:@"LuketBlockedUsersDidChangeNotification"
+                                               object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self reloadConversations];
+}
+
+- (void)blockedUsersDidChange {
     [self reloadConversations];
 }
 
@@ -224,6 +225,10 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
         }
 
         NSString *userId = [key substringFromIndex:MessageChatMessagesKeyPrefix.length];
+        if ([self currentUserBlockedUserId:userId]) {
+            continue;
+        }
+
         NSString *updatedTimeKey = [NSString stringWithFormat:@"%@%@", MessageChatUpdatedTimeKeyPrefix, userId];
         NSString *titleKey = [NSString stringWithFormat:@"%@%@", MessageChatTitleKeyPrefix, userId];
         NSString *cachedTitle = [NSUserDefaults.standardUserDefaults stringForKey:titleKey];
@@ -269,6 +274,21 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
     return userId.length > 0 ? userId : @"MotoChat";
 }
 
+- (BOOL)currentUserBlockedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (currentUserId.length == 0 || targetUserId.length == 0) {
+        return NO;
+    }
+
+    LuketGlobalData *globalData = LuketDataService.sharedService.cachedGlobalData;
+    for (LuketBlackRelation *relation in globalData.blackList) {
+        if ([relation.blockUserId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (UIColor *)pageBackgroundColor {
     return [UIColor colorWithRed:181.0 / 255.0 green:221.0 / 255.0 blue:244.0 / 255.0 alpha:1.0];
 }
@@ -280,6 +300,10 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 - (UIFont *)titleFontWithSize:(CGFloat)size {
     UIFont *font = [UIFont fontWithName:@"PangMenZhengDao" size:size];
     return font ?: [UIFont systemFontOfSize:size weight:UIFontWeightBold];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

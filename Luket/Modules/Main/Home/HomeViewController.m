@@ -210,6 +210,15 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self configureHomeContent];
     [self updateTitleState];
     [self loadPosts];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(blockedUsersDidChange)
+                                                 name:@"LuketBlockedUsersDidChangeNotification"
+                                               object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self syncCachedGlobalDataAndRefresh];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -312,8 +321,27 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 }
 
 - (void)updateVisiblePosts {
-    self.visiblePosts = self.posts ?: @[];
+    NSMutableArray<LuketPost *> *visiblePosts = [NSMutableArray array];
+    for (LuketPost *post in self.posts ?: @[]) {
+        if (![self currentUserBlockedUserId:post.publishUserId]) {
+            [visiblePosts addObject:post];
+        }
+    }
+    self.visiblePosts = visiblePosts.copy;
     [self.collectionView reloadData];
+}
+
+- (void)blockedUsersDidChange {
+    [self syncCachedGlobalDataAndRefresh];
+}
+
+- (void)syncCachedGlobalDataAndRefresh {
+    LuketGlobalData *cachedGlobalData = LuketDataService.sharedService.cachedGlobalData;
+    if (cachedGlobalData) {
+        self.globalData = cachedGlobalData;
+        self.posts = cachedGlobalData.postList ?: @[];
+    }
+    [self updateVisiblePosts];
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
@@ -415,6 +443,10 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 }
 
 - (void)presentUserProfileViewControllerForUserId:(NSString *)userId {
+    if ([self currentUserBlockedUserId:userId]) {
+        return;
+    }
+
     UserProfileViewController *viewController = [[UserProfileViewController alloc] init];
     LuketUser *user = [self userWithId:userId];
     viewController.profileUser = user;
@@ -423,6 +455,20 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     viewController.followedByCurrentUser = [self currentUserFollowedUserId:userId];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (BOOL)currentUserBlockedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (currentUserId.length == 0 || targetUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketBlackRelation *relation in self.globalData.blackList) {
+        if ([relation.blockUserId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 - (NSArray<LuketPost *> *)postsForUserId:(NSString *)userId {
@@ -461,6 +507,10 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 
 - (UIColor *)mainBackgroundColor {
     return [UIColor colorWithRed:181.0 / 255.0 green:221.0 / 255.0 blue:244.0 / 255.0 alpha:1.0];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

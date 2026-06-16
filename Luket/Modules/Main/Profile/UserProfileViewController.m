@@ -39,6 +39,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 @property (nonatomic, assign) BOOL usingFallbackPosts;
 @property (nonatomic, assign) BOOL followed;
 @property (nonatomic, assign) BOOL updatingFollow;
+@property (nonatomic, assign) BOOL updatingBlock;
 
 @end
 
@@ -503,6 +504,15 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
         });
     };
 
+    actionSheetView.shieldHandler = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        [strongSelf blockProfileUserFromActionSheet];
+    };
+
     [actionSheetView showInView:self.view];
 }
 
@@ -554,6 +564,71 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
             NSLog(@"[Luket] Save profile follow failed: %@", error.localizedDescription ?: message);
         }
     }];
+}
+
+- (void)blockProfileUserFromActionSheet {
+    if (self.updatingBlock || !self.globalData) {
+        return;
+    }
+
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    NSString *targetUserId = self.profileUser.userId;
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return;
+    }
+
+    NSArray<LuketBlackRelation *> *previousBlackList = self.globalData.blackList.copy ?: @[];
+    [self updateGlobalBlackListForUserId:currentUserId targetUserId:targetUserId];
+
+    self.updatingBlock = YES;
+    __weak typeof(self) weakSelf = self;
+    [[LuketDataService sharedService] saveGlobalData:self.globalData completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        strongSelf.updatingBlock = NO;
+        if (!success || error) {
+            strongSelf.globalData.blackList = previousBlackList;
+            NSLog(@"[Luket] Save profile block failed: %@", error.localizedDescription ?: message);
+            return;
+        }
+
+        [strongSelf notifyBlockedUsersDidChange];
+        [strongSelf dismissToFirstLevelPage];
+    }];
+}
+
+- (void)notifyBlockedUsersDidChange {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"LuketBlockedUsersDidChangeNotification" object:nil];
+}
+
+- (void)updateGlobalBlackListForUserId:(NSString *)userId targetUserId:(NSString *)targetUserId {
+    NSMutableArray<LuketBlackRelation *> *blackList = self.globalData.blackList.mutableCopy ?: [NSMutableArray array];
+    NSIndexSet *matchingIndexes = [blackList indexesOfObjectsPassingTest:^BOOL(LuketBlackRelation *relation, NSUInteger index, BOOL *stop) {
+        return [relation.blockUserId isEqualToString:userId] && [relation.targetUserId isEqualToString:targetUserId];
+    }];
+
+    if (matchingIndexes.count == 0) {
+        LuketBlackRelation *relation = [LuketBlackRelation modelWithDictionary:@{
+            @"blockUserId": userId,
+            @"targetUserId": targetUserId,
+            @"blockTime": [self currentRelationTimeString]
+        }];
+        [blackList addObject:relation];
+    }
+
+    self.globalData.blackList = blackList.copy;
+}
+
+- (void)dismissToFirstLevelPage {
+    UIViewController *presenter = self.presentingViewController;
+    while (presenter.presentingViewController) {
+        presenter = presenter.presentingViewController;
+    }
+
+    [presenter dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)applyFollowed:(BOOL)followed {

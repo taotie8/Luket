@@ -7,6 +7,7 @@
 #import "Cell/FriendChatMessageCell.h"
 #import "../Common/LuketMediaResource.h"
 #import "../Data/Service/LuketDataService.h"
+#import "../Report/ReportViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
 static NSString * const FriendChatMessagesKeyPrefix = @"FriendChatMessages";
@@ -21,6 +22,7 @@ static NSString * const FriendChatTitleKeyPrefix = @"FriendChatTitle";
 @property (nonatomic, strong) NSMutableArray<NSDictionary<NSString *, id> *> *messages;
 @property (nonatomic, assign) CGFloat keyboardOffset;
 @property (nonatomic, strong) UIView *mutualFollowOverlayView;
+@property (nonatomic, assign) BOOL updatingBlock;
 
 @end
 
@@ -429,6 +431,120 @@ static NSString * const FriendChatTitleKeyPrefix = @"FriendChatTitle";
 }
 
 - (void)moreButtonTapped {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *reportAction = [UIAlertAction actionWithTitle:@"Report"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        [self presentReportViewController];
+    }];
+    UIAlertAction *blockAction = [UIAlertAction actionWithTitle:@"Block"
+                                                          style:UIAlertActionStyleDestructive
+                                                        handler:^(UIAlertAction * _Nonnull action) {
+        [self blockConversationUser];
+    }];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [alertController addAction:reportAction];
+    [alertController addAction:blockAction];
+    [alertController addAction:cancelAction];
+
+    UIView *topContentView = [self.view viewWithTag:1006];
+    UIButton *moreButton = [topContentView viewWithTag:1005];
+    alertController.popoverPresentationController.sourceView = moreButton ?: self.view;
+    alertController.popoverPresentationController.sourceRect = moreButton ? moreButton.bounds : self.view.bounds;
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)presentReportViewController {
+    if (self.presentedViewController) {
+        return;
+    }
+
+    ReportViewController *viewController = [[ReportViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (void)blockConversationUser {
+    if (self.updatingBlock) {
+        return;
+    }
+
+    NSString *currentUserId = [self currentUserId];
+    NSString *targetUserId = [self.conversationUserId stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return;
+    }
+
+    __weak typeof(self) weakSelf = self;
+    self.updatingBlock = YES;
+    [[LuketDataService sharedService] loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable globalData, NSError * _Nullable error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        if (error || !globalData) {
+            strongSelf.updatingBlock = NO;
+            return;
+        }
+
+        NSArray<LuketBlackRelation *> *previousBlackList = globalData.blackList.copy ?: @[];
+        [strongSelf updateGlobalData:globalData blackListForUserId:currentUserId targetUserId:targetUserId];
+        [[LuketDataService sharedService] saveGlobalData:globalData completion:^(BOOL success, NSString *message, NSError * _Nullable saveError) {
+            strongSelf.updatingBlock = NO;
+            if (!success || saveError) {
+                globalData.blackList = previousBlackList;
+                [[LuketDataService sharedService] updateCachedGlobalData:globalData];
+                NSLog(@"[Luket] Save friend chat block failed: %@", saveError.localizedDescription ?: message);
+                return;
+            }
+
+            [strongSelf notifyBlockedUsersDidChange];
+            [strongSelf dismissToFirstLevelPage];
+        }];
+    }];
+}
+
+- (void)updateGlobalData:(LuketGlobalData *)globalData blackListForUserId:(NSString *)userId targetUserId:(NSString *)targetUserId {
+    NSMutableArray<LuketBlackRelation *> *blackList = globalData.blackList.mutableCopy ?: [NSMutableArray array];
+    NSIndexSet *matchingIndexes = [blackList indexesOfObjectsPassingTest:^BOOL(LuketBlackRelation *relation, NSUInteger index, BOOL *stop) {
+        return [relation.blockUserId isEqualToString:userId] && [relation.targetUserId isEqualToString:targetUserId];
+    }];
+
+    if (matchingIndexes.count == 0) {
+        LuketBlackRelation *relation = [LuketBlackRelation modelWithDictionary:@{
+            @"blockUserId": userId,
+            @"targetUserId": targetUserId,
+            @"blockTime": [self currentRelationTimeString]
+        }];
+        [blackList addObject:relation];
+    }
+
+    globalData.blackList = blackList.copy;
+}
+
+- (NSString *)currentRelationTimeString {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+    return [formatter stringFromDate:[NSDate date]];
+}
+
+- (void)notifyBlockedUsersDidChange {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"LuketBlockedUsersDidChangeNotification" object:nil];
+}
+
+- (void)dismissToFirstLevelPage {
+    UIViewController *presenter = self.presentingViewController;
+    while (presenter.presentingViewController) {
+        presenter = presenter.presentingViewController;
+    }
+
+    [presenter dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)setupKeyboardHandling {

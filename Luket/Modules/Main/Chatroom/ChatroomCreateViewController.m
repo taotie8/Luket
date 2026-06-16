@@ -124,21 +124,21 @@
     UIButton *createButton = [self.topCardView viewWithTag:1001];
     createButton.frame = CGRectMake(contentWidth - 100.0, 6.0, 80.0, 44.0);
     
-    CGFloat roomNameHeight = 138.0;
+    CGFloat roomNameHeight = 160.0;
     self.roomNameContentView.frame = CGRectMake(20.0,
-                                                CGRectGetMaxY(self.topCardView.frame),
+                                                CGRectGetMaxY(self.topCardView.frame) + 24.0,
                                                 contentWidth,
                                                 roomNameHeight);
     
     UIImageView *roomNameCardView = [self.roomNameContentView viewWithTag:1001];
     roomNameCardView.frame = self.roomNameContentView.bounds;
     
-    self.roomNameTextField.frame = CGRectMake(21.0, 60.0, contentWidth - 42.0, 41.0);
+    self.roomNameTextField.frame = CGRectMake(21.0, 96.0, contentWidth - 42.0, 41.0);
     self.roomNameTextField.layer.cornerRadius = 11.0;
-    
+
     CGFloat introduceHeight = 191.0;
     self.introduceContentView.frame = CGRectMake(20.0,
-                                                 CGRectGetMaxY(self.roomNameContentView.frame) + 14.0,
+                                                 CGRectGetMaxY(self.roomNameContentView.frame) + 10.0,
                                                  contentWidth,
                                                  introduceHeight);
     
@@ -158,6 +158,38 @@
 
 - (void)createButtonTapped {
     [self.view endEditing:YES];
+    NSString *roomName = [self.roomNameTextField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    NSString *introduction = [self.introduceTextView.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (roomName.length == 0) {
+        [self showValidationMessage:@"Please enter a room name."];
+        return;
+    }
+    if (introduction.length == 0 || [introduction isEqualToString:@"Please enter"]) {
+        [self showValidationMessage:@"Please enter an introduction."];
+        return;
+    }
+
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Group created successfully."
+                                                                             message:@"It is under review."
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction * _Nonnull action) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)showValidationMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)setupKeyboardHandling {

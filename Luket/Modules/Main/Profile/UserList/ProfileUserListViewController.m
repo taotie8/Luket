@@ -35,10 +35,18 @@
     [self setupTopBar];
     [self setupTableView];
     [self loadUsers];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(blockedUsersDidChange)
+                                                 name:@"LuketBlockedUsersDidChangeNotification"
+                                               object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self loadUsers];
+}
+
+- (void)blockedUsersDidChange {
     [self loadUsers];
 }
 
@@ -118,6 +126,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     LuketUser *user = self.users[indexPath.row];
+    if (self.mode != ProfileUserListModeBlacklist && [self currentUserBlockedUserId:user.userId]) {
+        return;
+    }
+
     UserProfileViewController *viewController = [[UserProfileViewController alloc] init];
     viewController.profileUser = user;
     viewController.globalData = self.globalData;
@@ -129,6 +141,10 @@
 
 - (void)backButtonTapped {
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)loadUsers {
@@ -155,13 +171,13 @@
 
     if (self.mode == ProfileUserListModeFollow) {
         for (LuketFollowRelation *relation in self.globalData.followList) {
-            if ([relation.userId isEqualToString:currentUserId]) {
+            if ([relation.userId isEqualToString:currentUserId] && ![self currentUserBlockedUserId:relation.targetUserId]) {
                 [users addObject:[self userForUserId:relation.targetUserId]];
             }
         }
     } else if (self.mode == ProfileUserListModeFans) {
         for (LuketFollowRelation *relation in self.globalData.followList) {
-            if ([relation.targetUserId isEqualToString:currentUserId]) {
+            if ([relation.targetUserId isEqualToString:currentUserId] && ![self currentUserBlockedUserId:relation.userId]) {
                 [users addObject:[self userForUserId:relation.userId]];
             }
         }
@@ -299,6 +315,20 @@
 
     for (LuketFollowRelation *relation in self.globalData.followList) {
         if ([relation.userId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (BOOL)currentUserBlockedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = [self currentUserId];
+    if (currentUserId.length == 0 || targetUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketBlackRelation *relation in self.globalData.blackList) {
+        if ([relation.blockUserId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
             return YES;
         }
     }

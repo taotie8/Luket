@@ -141,6 +141,39 @@
     return 15.0;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.item >= self.diamondAmounts.count || indexPath.item >= self.prices.count) {
+        return;
+    }
+
+    NSString *message = [NSString stringWithFormat:@"Recharge %@ diamonds for %@?", self.diamondAmounts[indexPath.item], self.prices[indexPath.item]];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Recharge"
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction * _Nonnull action) {
+        [self showStoreKitUnavailableAlert];
+    }];
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)showStoreKitUnavailableAlert {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:@"In-app purchase products are not configured yet."
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
 - (void)backButtonTapped {
     [self dismissViewControllerAnimated:YES completion:nil];
 }

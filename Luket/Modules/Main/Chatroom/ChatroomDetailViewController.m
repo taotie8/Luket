@@ -6,7 +6,6 @@
 #import "ChatroomDetailViewController.h"
 #import "ChatroomMemberView.h"
 #import "ChatroomMessageCell.h"
-#import "../Common/MoreActionSheetView.h"
 #import "../Data/Service/LuketDataService.h"
 #import "../Report/ReportViewController.h"
 
@@ -72,6 +71,7 @@ static NSString * const ChatroomBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
 
     UIButton *moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
     moreButton.translatesAutoresizingMaskIntoConstraints = NO;
+    moreButton.tag = 1005;
     [moreButton setImage:[[UIImage imageNamed:@"DetailMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [moreButton addTarget:self action:@selector(moreButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.headerView addSubview:moreButton];
@@ -215,6 +215,8 @@ static NSString * const ChatroomBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
 - (UIView *)groupPromptHeaderView {
     CGFloat width = CGRectGetWidth(UIScreen.mainScreen.bounds);
     CGFloat horizontalInset = 20.0;
+    CGFloat topPadding = 22.0;
+    CGFloat bottomPadding = 34.0;
     CGFloat labelWidth = width - horizontalInset * 2.0;
     NSString *promptText = [self groupPromptText];
 
@@ -227,10 +229,10 @@ static NSString * const ChatroomBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
 
     CGSize labelSize = [promptLabel sizeThatFits:CGSizeMake(labelWidth - 32.0, CGFLOAT_MAX)];
     CGFloat promptHeight = MAX(46.0, ceil(labelSize.height) + 24.0);
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, width, promptHeight + 22.0)];
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, width, topPadding + promptHeight + bottomPadding)];
     headerView.backgroundColor = [self pageBackgroundColor];
 
-    UIView *promptBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(horizontalInset, 22.0, labelWidth, promptHeight)];
+    UIView *promptBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(horizontalInset, topPadding, labelWidth, promptHeight)];
     promptBackgroundView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.58];
     promptBackgroundView.layer.cornerRadius = 14.0;
     promptBackgroundView.layer.masksToBounds = YES;
@@ -471,30 +473,24 @@ static NSString * const ChatroomBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
 }
 
 - (void)moreButtonTapped {
-    MoreActionSheetView *actionSheetView = [[MoreActionSheetView alloc] initWithFrame:self.view.bounds];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *reportAction = [UIAlertAction actionWithTitle:@"Report"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        [self presentReportViewController];
+    }];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+    [alertController addAction:reportAction];
+    [alertController addAction:cancelAction];
 
-    __weak typeof(self) weakSelf = self;
-    actionSheetView.reportHandler = ^{
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) {
-            return;
-        }
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [strongSelf presentReportViewController];
-        });
-    };
-
-    actionSheetView.shieldHandler = ^{
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) {
-            return;
-        }
-
-        [strongSelf blockGroupFromActionSheet];
-    };
-
-    [actionSheetView showInView:self.view];
+    UIButton *moreButton = [self.headerView viewWithTag:1005];
+    alertController.popoverPresentationController.sourceView = moreButton ?: self.view;
+    alertController.popoverPresentationController.sourceRect = moreButton ? moreButton.bounds : self.view.bounds;
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)presentReportViewController {
@@ -505,12 +501,6 @@ static NSString * const ChatroomBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
     ReportViewController *viewController = [[ReportViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
-}
-
-- (void)blockGroupFromActionSheet {
-    [NSUserDefaults.standardUserDefaults setBool:YES forKey:[self blockedStorageKey]];
-    [NSUserDefaults.standardUserDefaults synchronize];
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)updateHeartButton {
