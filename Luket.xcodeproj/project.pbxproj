@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */; };
 		9D7F4A012FE9A90000C0D001 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 9D7F4A012FE9A90000C0D002 /* SDWebImage */; };
+		9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,20 +59,20 @@
 			);
 			sourceTree = "<group>";
 		};
-		9D7F4A022FE9A90000C0D003 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		723E4BB82FD016FB0024B9F9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				723E4BB72FD016FB0024B9F9 /* Luket.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9D7F4A022FE9A90000C0D003 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -169,6 +169,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Luket/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Luket;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Luket requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luket requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luket memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -202,6 +205,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Luket/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Luket;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Luket requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luket requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luket memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;

@@ -14,6 +14,8 @@
 @property (nonatomic, strong) UIScrollView *uploadScrollView;
 @property (nonatomic, strong) UILabel *uploadCountLabel;
 @property (nonatomic, strong) NSMutableArray<UIImage *> *selectedImages;
+@property (nonatomic, strong) UIView *photoSourceDimmingView;
+@property (nonatomic, strong) UIView *photoSourceSheetView;
 @property (nonatomic, assign) CGFloat keyboardHeight;
 
 @end
@@ -167,6 +169,7 @@
         contentWidth = CGRectGetMaxX(imageView.frame);
     }
     self.uploadScrollView.contentSize = CGSizeMake(contentWidth + 26.0, 125.0);
+    [self layoutPhotoSourceSheet];
 }
 
 - (void)backButtonTapped {
@@ -213,9 +216,166 @@
         return;
     }
 
+    [self.view endEditing:YES];
+
+    [self showPhotoSourceSheet];
+}
+
+- (void)showPhotoSourceSheet {
+    if (self.photoSourceSheetView) {
+        return;
+    }
+
+    self.photoSourceDimmingView = [[UIView alloc] initWithFrame:self.view.bounds];
+    self.photoSourceDimmingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.0];
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissPhotoSourceSheet)];
+    [self.photoSourceDimmingView addGestureRecognizer:tapGesture];
+    [self.view addSubview:self.photoSourceDimmingView];
+
+    self.photoSourceSheetView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.photoSourceSheetView.backgroundColor = UIColor.whiteColor;
+    self.photoSourceSheetView.layer.cornerRadius = 16.0;
+    self.photoSourceSheetView.layer.masksToBounds = YES;
+    [self.view addSubview:self.photoSourceSheetView];
+
+    UIButton *cameraButton = [self photoSourceButtonWithTitle:@"Camera" action:@selector(cameraSourceTapped)];
+    cameraButton.tag = 1301;
+    [self.photoSourceSheetView addSubview:cameraButton];
+
+    UIButton *libraryButton = [self photoSourceButtonWithTitle:@"Photo Library" action:@selector(librarySourceTapped)];
+    libraryButton.tag = 1302;
+    [self.photoSourceSheetView addSubview:libraryButton];
+
+    UIView *separatorView = [[UIView alloc] init];
+    separatorView.tag = 1303;
+    separatorView.backgroundColor = [UIColor colorWithRed:226.0 / 255.0 green:233.0 / 255.0 blue:241.0 / 255.0 alpha:1.0];
+    [self.photoSourceSheetView addSubview:separatorView];
+
+    UIView *gapView = [[UIView alloc] init];
+    gapView.tag = 1304;
+    gapView.backgroundColor = [self pageBackgroundColor];
+    [self.photoSourceSheetView addSubview:gapView];
+
+    UIButton *cancelButton = [self photoSourceButtonWithTitle:@"Cancel" action:@selector(dismissPhotoSourceSheet)];
+    cancelButton.tag = 1305;
+    [self.photoSourceSheetView addSubview:cancelButton];
+
+    [self layoutPhotoSourceSheetAtHiddenPosition];
+    [UIView animateWithDuration:0.25 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.photoSourceDimmingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.38];
+        [self layoutPhotoSourceSheet];
+    } completion:nil];
+}
+
+- (UIButton *)photoSourceButtonWithTitle:(NSString *)title action:(SEL)action {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = UIColor.whiteColor;
+    [button setTitle:title forState:UIControlStateNormal];
+    [button setTitleColor:[self titleColor] forState:UIControlStateNormal];
+    button.titleLabel.font = [UIFont systemFontOfSize:18.0 weight:UIFontWeightSemibold];
+    [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
+    return button;
+}
+
+- (void)layoutPhotoSourceSheet {
+    if (!self.photoSourceSheetView) {
+        return;
+    }
+
+    self.photoSourceDimmingView.frame = self.view.bounds;
+
+    CGFloat width = CGRectGetWidth(self.view.bounds);
+    CGFloat safeBottom = self.view.safeAreaInsets.bottom;
+    CGFloat buttonHeight = 56.0;
+    CGFloat gapHeight = 8.0;
+    CGFloat separatorHeight = 1.0;
+    CGFloat sheetHeight = buttonHeight * 3.0 + gapHeight + separatorHeight + safeBottom;
+    self.photoSourceSheetView.frame = CGRectMake(0.0,
+                                                 CGRectGetHeight(self.view.bounds) - sheetHeight,
+                                                 width,
+                                                 sheetHeight);
+
+    UIButton *cameraButton = [self.photoSourceSheetView viewWithTag:1301];
+    UIButton *libraryButton = [self.photoSourceSheetView viewWithTag:1302];
+    UIView *separatorView = [self.photoSourceSheetView viewWithTag:1303];
+    UIView *gapView = [self.photoSourceSheetView viewWithTag:1304];
+    UIButton *cancelButton = [self.photoSourceSheetView viewWithTag:1305];
+
+    cameraButton.frame = CGRectMake(0.0, 0.0, width, buttonHeight);
+    separatorView.frame = CGRectMake(20.0, buttonHeight, width - 40.0, 1.0);
+    libraryButton.frame = CGRectMake(0.0, buttonHeight + 1.0, width, buttonHeight);
+    gapView.frame = CGRectMake(0.0, CGRectGetMaxY(libraryButton.frame), width, gapHeight);
+    cancelButton.frame = CGRectMake(0.0, CGRectGetMaxY(gapView.frame), width, buttonHeight);
+}
+
+- (void)layoutPhotoSourceSheetAtHiddenPosition {
+    CGFloat width = CGRectGetWidth(self.view.bounds);
+    CGFloat safeBottom = self.view.safeAreaInsets.bottom;
+    CGFloat sheetHeight = 56.0 * 3.0 + 8.0 + 1.0 + safeBottom;
+    self.photoSourceDimmingView.frame = self.view.bounds;
+    self.photoSourceSheetView.frame = CGRectMake(0.0, CGRectGetHeight(self.view.bounds), width, sheetHeight);
+}
+
+- (void)dismissPhotoSourceSheet {
+    if (!self.photoSourceSheetView) {
+        return;
+    }
+
+    [UIView animateWithDuration:0.2 delay:0.0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.photoSourceDimmingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.0];
+        [self layoutPhotoSourceSheetAtHiddenPosition];
+    } completion:^(BOOL finished) {
+        [self.photoSourceSheetView removeFromSuperview];
+        [self.photoSourceDimmingView removeFromSuperview];
+        self.photoSourceSheetView = nil;
+        self.photoSourceDimmingView = nil;
+    }];
+}
+
+- (void)cameraSourceTapped {
+    [self dismissPhotoSourceSheetWithCompletion:^{
+        [self presentImagePickerWithSourceType:UIImagePickerControllerSourceTypeCamera];
+    }];
+}
+
+- (void)librarySourceTapped {
+    [self dismissPhotoSourceSheetWithCompletion:^{
+        [self presentImagePickerWithSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
+    }];
+}
+
+- (void)dismissPhotoSourceSheetWithCompletion:(void (^)(void))completion {
+    if (!self.photoSourceSheetView) {
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    [UIView animateWithDuration:0.2 delay:0.0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.photoSourceDimmingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.0];
+        [self layoutPhotoSourceSheetAtHiddenPosition];
+    } completion:^(BOOL finished) {
+        [self.photoSourceSheetView removeFromSuperview];
+        [self.photoSourceDimmingView removeFromSuperview];
+        self.photoSourceSheetView = nil;
+        self.photoSourceDimmingView = nil;
+        if (completion) {
+            completion();
+        }
+    }];
+}
+
+- (void)presentImagePickerWithSourceType:(UIImagePickerControllerSourceType)sourceType {
+    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
+        NSString *message = sourceType == UIImagePickerControllerSourceTypeCamera ? @"Camera is not available." : @"Photo Library is not available.";
+        [self showAlertWithMessage:message];
+        return;
+    }
+
     UIImagePickerController *pickerController = [[UIImagePickerController alloc] init];
     pickerController.delegate = self;
-    pickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    pickerController.sourceType = sourceType;
     pickerController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:pickerController animated:YES completion:nil];
 }

@@ -5,6 +5,8 @@
 
 #import "AISwimmingHistoryViewController.h"
 
+static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
+
 @interface AISwimmingHistoryCell : UICollectionViewCell
 
 - (void)configureWithDate:(NSString *)date text:(NSString *)text;
@@ -92,13 +94,15 @@
     [super viewDidLoad];
 
     self.view.backgroundColor = [self pageBackgroundColor];
-    self.historyItems = @[
-        @{@"date": @"2024-09-13", @"text": @"Alpinestars ANDES V3 cycling suit:\nAlpinestars is a well-known Italian brand.\nThis cycling suit is waterproof......"},
-        @{@"date": @"2024-09-13", @"text": @"Alpinestars ANDES V3 cycling suit:\nAlpinestars is a well-known Italian brand.\nThis cycling suit is waterproof......"},
-        @{@"date": @"", @"text": @""}
-    ];
+    self.historyItems = [self storedHistoryItems];
     [self setupTopCard];
     [self setupCollectionView];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.historyItems = [self storedHistoryItems];
+    [self.collectionView reloadData];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -172,6 +176,24 @@
 
 - (void)backButtonTapped {
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (NSArray<NSDictionary<NSString *, NSString *> *> *)storedHistoryItems {
+    NSArray *items = [NSUserDefaults.standardUserDefaults arrayForKey:AISwimmingHistoryStorageKey];
+    NSMutableArray<NSDictionary<NSString *, NSString *> *> *historyItems = [NSMutableArray array];
+    for (id item in items) {
+        if (![item isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        NSDictionary *dictionary = item;
+        NSString *date = [dictionary[@"date"] isKindOfClass:NSString.class] ? dictionary[@"date"] : @"";
+        NSString *text = [dictionary[@"text"] isKindOfClass:NSString.class] ? dictionary[@"text"] : @"";
+        if (date.length == 0 && text.length == 0) {
+            continue;
+        }
+        [historyItems addObject:@{@"date": date ?: @"", @"text": text ?: @""}];
+    }
+    return historyItems.copy;
 }
 
 - (UIColor *)pageBackgroundColor {

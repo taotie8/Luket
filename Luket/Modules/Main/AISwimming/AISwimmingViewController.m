@@ -6,12 +6,18 @@
 #import "AISwimmingViewController.h"
 #import "AISwimmingResultViewController.h"
 #import "AISwimmingHistoryViewController.h"
+#import "DeepSeekService.h"
+
+static NSString * const AISwimmingPlaceholderText = @"Please describe your expectations for an\nideal cycling outfit....";
+static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
 
 @interface AISwimmingViewController () <UITextViewDelegate>
 
 @property (nonatomic, strong) UIView *topCardView;
 @property (nonatomic, strong) UIView *formContentView;
 @property (nonatomic, strong) UITextView *requirementTextView;
+@property (nonatomic, strong) UIView *loadingView;
+@property (nonatomic, strong) UIActivityIndicatorView *loadingIndicatorView;
 @property (nonatomic, assign) CGFloat keyboardHeight;
 
 @end
@@ -23,6 +29,7 @@
     
     self.view.backgroundColor = [self pageBackgroundColor];
     [self setupViews];
+    [self setupLoadingView];
     [self setupKeyboardHandling];
 }
 
@@ -89,7 +96,7 @@
     self.requirementTextView.layer.cornerRadius = 11.0;
     self.requirementTextView.layer.masksToBounds = YES;
     self.requirementTextView.delegate = self;
-    self.requirementTextView.text = @"Please describe your expectations for an\nideal cycling outfit....";
+    self.requirementTextView.text = AISwimmingPlaceholderText;
     self.requirementTextView.textColor = [UIColor colorWithWhite:1.0 alpha:1.0];
     self.requirementTextView.font = [UIFont systemFontOfSize:16.0];
     self.requirementTextView.textContainerInset = UIEdgeInsetsMake(15.0, 19.0, 15.0, 96.0);
@@ -195,6 +202,9 @@
     
     UIImageView *creditButtonView = [self.view viewWithTag:1008];
     creditButtonView.frame = CGRectMake((width - 318.0) / 2.0, CGRectGetHeight(self.view.bounds) - self.view.safeAreaInsets.bottom - 56.0, 318.0, 51.0);
+
+    self.loadingView.frame = self.view.bounds;
+    self.loadingIndicatorView.center = self.loadingView.center;
 }
 
 - (void)backButtonTapped {
@@ -203,6 +213,10 @@
 
 - (void)creditButtonTapped {
     [self.view endEditing:YES];
+    if ([self currentPromptText].length == 0) {
+        [self showAlertWithMessage:@"Please enter your requirements."];
+        return;
+    }
     [self showDiamondDialogWithEnoughDiamonds:[self hasEnoughDiamondsForAI]];
 }
 
@@ -252,7 +266,7 @@
     BOOL enoughDiamonds = sender.tag == 1201;
     [self closeDiamondDialog];
     if (enoughDiamonds) {
-        [self showResultPage];
+        [self requestDeepSeekResult];
     }
 }
 
@@ -264,10 +278,121 @@
     return YES;
 }
 
-- (void)showResultPage {
+- (void)requestDeepSeekResult {
+    NSString *prompt = [self currentPromptText];
+    if (prompt.length == 0) {
+        [self showAlertWithMessage:@"Please enter your requirements."];
+        return;
+    }
+
+    if (!DeepSeekService.sharedService.hasAPIKey) {
+        [self showAlertWithMessage:@"DeepSeek API key is not configured."];
+        return;
+    }
+
+    NSString *priceRange = [self selectedTitleForTags:@[@1100, @1101, @1102]];
+    NSString *stylePreference = [self selectedTitleForTags:@[@1103, @1104, @1105, @1106]];
+    [self showLoadingView];
+
+    __weak typeof(self) weakSelf = self;
+    [DeepSeekService.sharedService generateSwimmingRecommendationWithPrompt:prompt
+                                                                 priceRange:priceRange
+                                                            stylePreference:stylePreference
+                                                                 completion:^(NSString * _Nullable responseText, NSError * _Nullable error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+
+        [strongSelf hideLoadingView];
+        if (error || responseText.length == 0) {
+            [strongSelf showAlertWithMessage:error.localizedDescription ?: @"DeepSeek request failed."];
+            return;
+        }
+
+        [strongSelf saveHistoryPrompt:prompt response:responseText];
+        [strongSelf showResultPageWithPrompt:prompt response:responseText];
+    }];
+}
+
+- (void)showResultPageWithPrompt:(NSString *)prompt response:(NSString *)response {
     AISwimmingResultViewController *viewController = [[AISwimmingResultViewController alloc] init];
+    viewController.promptText = prompt;
+    viewController.responseText = response;
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (NSString *)currentPromptText {
+    NSString *text = [self.requirementTextView.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (text.length == 0 || [text hasPrefix:@"Please describe"]) {
+        return @"";
+    }
+    return text;
+}
+
+- (NSString *)selectedTitleForTags:(NSArray<NSNumber *> *)tags {
+    for (NSNumber *tagNumber in tags) {
+        UIButton *button = [self.formContentView viewWithTag:tagNumber.integerValue];
+        if (button.selected) {
+            return [button titleForState:UIControlStateNormal] ?: @"";
+        }
+    }
+    return @"";
+}
+
+- (void)saveHistoryPrompt:(NSString *)prompt response:(NSString *)response {
+    NSMutableArray<NSDictionary<NSString *, NSString *> *> *historyItems = [[NSUserDefaults.standardUserDefaults arrayForKey:AISwimmingHistoryStorageKey] mutableCopy] ?: [NSMutableArray array];
+    NSDictionary<NSString *, NSString *> *item = @{
+        @"date": [self currentDateText] ?: @"",
+        @"prompt": prompt ?: @"",
+        @"text": response ?: @""
+    };
+    [historyItems insertObject:item atIndex:0];
+    [NSUserDefaults.standardUserDefaults setObject:historyItems.copy forKey:AISwimmingHistoryStorageKey];
+    [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (NSString *)currentDateText {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyy-MM-dd";
+    return [formatter stringFromDate:NSDate.date];
+}
+
+- (void)setupLoadingView {
+    self.loadingView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.loadingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.45];
+    self.loadingView.hidden = YES;
+    [self.view addSubview:self.loadingView];
+
+    if (@available(iOS 13.0, *)) {
+        self.loadingIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+    } else {
+        self.loadingIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    }
+    self.loadingIndicatorView.color = UIColor.whiteColor;
+    self.loadingIndicatorView.hidesWhenStopped = YES;
+    [self.loadingView addSubview:self.loadingIndicatorView];
+}
+
+- (void)showLoadingView {
+    self.loadingView.hidden = NO;
+    [self.view bringSubviewToFront:self.loadingView];
+    [self.loadingIndicatorView startAnimating];
+}
+
+- (void)hideLoadingView {
+    [self.loadingIndicatorView stopAnimating];
+    self.loadingView.hidden = YES;
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)optionButtonTapped:(UIButton *)sender {
@@ -352,7 +477,7 @@
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
     if (textView.text.length == 0) {
-        textView.text = @"Please describe your expectations for an\nideal cycling outfit....";
+        textView.text = AISwimmingPlaceholderText;
         textView.textColor = [UIColor colorWithWhite:1.0 alpha:0.35];
     }
 }

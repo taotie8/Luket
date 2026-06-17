@@ -192,6 +192,8 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
 @property (nonatomic, strong) UIButton *aiButton;
 @property (nonatomic, strong) UIButton *trendingButton;
 @property (nonatomic, strong) UIButton *discoverButton;
+@property (nonatomic, strong) UIView *loadingView;
+@property (nonatomic, strong) UIActivityIndicatorView *loadingIndicatorView;
 @property (nonatomic, copy) NSArray<LuketPost *> *posts;
 @property (nonatomic, copy) NSArray<LuketPost *> *visiblePosts;
 @property (nonatomic, strong) LuketGlobalData *globalData;
@@ -208,6 +210,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     self.view.backgroundColor = [self mainBackgroundColor];
     [self configureCollectionView];
     [self configureHomeContent];
+    [self configureLoadingView];
     [self updateTitleState];
     [self loadPosts];
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -239,6 +242,9 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     self.collectionView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 100.0, 0.0);
     self.collectionView.scrollIndicatorInsets = self.collectionView.contentInset;
     [self.collectionView.collectionViewLayout invalidateLayout];
+
+    self.loadingView.frame = self.view.bounds;
+    self.loadingIndicatorView.center = self.loadingView.center;
 }
 
 - (void)configureCollectionView {
@@ -277,6 +283,23 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     [self.view addSubview:self.discoverButton];
 }
 
+- (void)configureLoadingView {
+    self.loadingView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.loadingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.18];
+    self.loadingView.hidden = YES;
+    self.loadingView.userInteractionEnabled = YES;
+    [self.view addSubview:self.loadingView];
+
+    if (@available(iOS 13.0, *)) {
+        self.loadingIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+    } else {
+        self.loadingIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    }
+    self.loadingIndicatorView.color = UIColor.whiteColor;
+    self.loadingIndicatorView.hidesWhenStopped = YES;
+    [self.loadingView addSubview:self.loadingIndicatorView];
+}
+
 - (void)titleButtonTapped:(UIButton *)sender {
     self.feedMode = sender.tag == HomeFeedModeDiscover ? HomeFeedModeDiscover : HomeFeedModeTrending;
     [self updateTitleState];
@@ -301,6 +324,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     self.posts = @[];
     self.visiblePosts = @[];
     [self.collectionView reloadData];
+    [self showLoadingView];
 
     __weak typeof(self) weakSelf = self;
     [[LuketDataService sharedService] loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
@@ -309,6 +333,7 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
             return;
         }
 
+        [strongSelf hideLoadingView];
         if (error) {
             NSLog(@"[Luket] Home postList load failed: %@", error.localizedDescription);
             return;
@@ -320,6 +345,17 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
     }];
 }
 
+- (void)showLoadingView {
+    self.loadingView.hidden = NO;
+    [self.view bringSubviewToFront:self.loadingView];
+    [self.loadingIndicatorView startAnimating];
+}
+
+- (void)hideLoadingView {
+    [self.loadingIndicatorView stopAnimating];
+    self.loadingView.hidden = YES;
+}
+
 - (void)updateVisiblePosts {
     NSMutableArray<LuketPost *> *visiblePosts = [NSMutableArray array];
     for (LuketPost *post in self.posts ?: @[]) {
@@ -327,8 +363,28 @@ typedef NS_ENUM(NSUInteger, HomeFeedMode) {
             [visiblePosts addObject:post];
         }
     }
-    self.visiblePosts = visiblePosts.copy;
+
+    if (self.feedMode == HomeFeedModeDiscover) {
+        self.visiblePosts = [self randomPostsFromPosts:visiblePosts limit:3];
+    } else {
+        self.visiblePosts = visiblePosts.copy;
+    }
     [self.collectionView reloadData];
+}
+
+- (NSArray<LuketPost *> *)randomPostsFromPosts:(NSArray<LuketPost *> *)posts limit:(NSUInteger)limit {
+    if (posts.count <= limit) {
+        return posts.copy;
+    }
+
+    NSMutableArray<LuketPost *> *remainingPosts = posts.mutableCopy;
+    NSMutableArray<LuketPost *> *randomPosts = [NSMutableArray arrayWithCapacity:limit];
+    while (randomPosts.count < limit && remainingPosts.count > 0) {
+        NSUInteger index = arc4random_uniform((uint32_t)remainingPosts.count);
+        [randomPosts addObject:remainingPosts[index]];
+        [remainingPosts removeObjectAtIndex:index];
+    }
+    return randomPosts.copy;
 }
 
 - (void)blockedUsersDidChange {

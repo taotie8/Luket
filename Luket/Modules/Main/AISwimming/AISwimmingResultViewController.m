@@ -102,6 +102,10 @@
 }
 
 - (NSString *)resultText {
+    if (self.responseText.length > 0) {
+        return self.responseText;
+    }
+
     return @"Alpinestars ANDES V3 Swimming Suit:\nAlpinestars is a well-known Italian brand. This swimming suit is waterproof and thermal, made from wear-resistant and tear-resistant fabric. It follows an ergonomic design, offering adequate protection for critical areas while ensuring comfort and safety. With prices ranging from 1000-3000 yuan, it's a high-quality option for long-distance swimmers looking for durability and performance.\n\nCraft Adv Endur Swimming Suit:\nCraft's swimming suit offers some unique features. Its fabric dries quickly and wicks away moisture, while the breathable mesh design helps keep you cool. Multiple back pockets allow for convenient storage of small items, and the ergonomic design reduces water resistance. Priced between 500-1500 yuan, it's ideal for long-distance swimmers who prioritize comfort.\n\nDecathlon Long-Distance Swimming Gear:\nDecathlon's long-distance swimming gear is designed for durability and performance. It's crafted from materials that offer excellent flexibility and comfort during extended swims, making it suitable for daily training and outdoor swimming.";
 }
 

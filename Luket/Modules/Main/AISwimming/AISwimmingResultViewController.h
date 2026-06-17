@@ -7,4 +7,7 @@
 
 @interface AISwimmingResultViewController : UIViewController
 
+@property (nonatomic, copy) NSString *promptText;
+@property (nonatomic, copy) NSString *responseText;
+
 @end
