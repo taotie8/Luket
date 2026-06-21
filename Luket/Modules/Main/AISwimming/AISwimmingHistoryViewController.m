@@ -84,6 +84,7 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
 
 @property (nonatomic, strong) UIView *topCardView;
 @property (nonatomic, strong) UICollectionView *collectionView;
+@property (nonatomic, strong) UIImageView *emptyStateImageView;
 @property (nonatomic, copy) NSArray<NSDictionary<NSString *, NSString *> *> *historyItems;
 
 @end
@@ -97,12 +98,14 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
     self.historyItems = [self storedHistoryItems];
     [self setupTopCard];
     [self setupCollectionView];
+    [self setupEmptyStateView];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     self.historyItems = [self storedHistoryItems];
     [self.collectionView reloadData];
+    [self updateEmptyStateVisibility];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -114,6 +117,12 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
     self.topCardView.layer.cornerRadius = 11.0;
     self.collectionView.frame = CGRectMake(0.0, CGRectGetMaxY(self.topCardView.frame), width, CGRectGetHeight(self.view.bounds) - CGRectGetMaxY(self.topCardView.frame));
     [self.collectionView.collectionViewLayout invalidateLayout];
+
+    CGFloat emptyWidth = 121.0;
+    CGFloat emptyHeight = 142.0;
+    CGFloat emptyY = CGRectGetMinY(self.collectionView.frame) + (CGRectGetHeight(self.collectionView.frame) - emptyHeight) * 0.36;
+    self.emptyStateImageView.frame = CGRectMake((width - emptyWidth) / 2.0, emptyY, emptyWidth, emptyHeight);
+    [self.view bringSubviewToFront:self.emptyStateImageView];
 }
 
 - (void)setupTopCard {
@@ -149,8 +158,19 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
     [self.view addSubview:self.collectionView];
 }
 
+- (void)setupEmptyStateView {
+    self.emptyStateImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"CommonEmptyState"]];
+    self.emptyStateImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.emptyStateImageView.hidden = self.historyItems.count > 0;
+    [self.view addSubview:self.emptyStateImageView];
+}
+
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     return self.historyItems.count;
+}
+
+- (void)updateEmptyStateVisibility {
+    self.emptyStateImageView.hidden = self.historyItems.count > 0;
 }
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {

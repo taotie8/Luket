@@ -33,6 +33,8 @@ typedef NS_ENUM(NSInteger, MyProfileViewTag) {
     MyProfileViewTagDiamondButton = 1017
 };
 
+static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
+
 @interface MyProfileViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
 @property (nonatomic, strong) UICollectionView *collectionView;
@@ -247,6 +249,10 @@ typedef NS_ENUM(NSInteger, MyProfileViewTag) {
 }
 
 - (NSString *)bioTextForUser:(LuketUser *)user {
+    NSString *storedAbout = [self storedAboutTextForUserId:user.userId];
+    if (storedAbout.length > 0) {
+        return storedAbout;
+    }
     if (user.email.length > 0) {
         return user.email;
     }
@@ -260,6 +266,14 @@ typedef NS_ENUM(NSInteger, MyProfileViewTag) {
         return [NSString stringWithFormat:@"%ld", (long)user.age];
     }
     return @"My motorcycle, my adventure partner.";
+}
+
+- (NSString *)storedAboutTextForUserId:(NSString *)userId {
+    if (userId.length == 0) {
+        return @"";
+    }
+    NSString *key = [NSString stringWithFormat:@"%@.%@", MyProfileAboutStorageKeyPrefix, userId];
+    return [NSUserDefaults.standardUserDefaults stringForKey:key] ?: @"";
 }
 
 - (NSInteger)followingCountForUserId:(NSString *)userId {
@@ -424,6 +438,9 @@ typedef NS_ENUM(NSInteger, MyProfileViewTag) {
 
 - (void)editAvatarButtonTapped {
     EditProfileViewController *viewController = [[EditProfileViewController alloc] init];
+    viewController.profileUser = self.currentUser;
+    viewController.globalData = self.globalData;
+    viewController.profileAboutText = [self bioTextForUser:self.currentUser];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
 }

@@ -19,6 +19,20 @@ static NSString * const LuketMediaBaseURLString = @"https://xnisk.chavytogo.com/
         return image;
     }
 
+    NSURL *fileURL = nil;
+    NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if ([trimmedIdentifier hasPrefix:@"file://"]) {
+        fileURL = [NSURL URLWithString:trimmedIdentifier];
+    } else if ([trimmedIdentifier hasPrefix:@"/"]) {
+        fileURL = [NSURL fileURLWithPath:trimmedIdentifier];
+    }
+    if (fileURL.isFileURL && fileURL.path.length > 0) {
+        image = [UIImage imageWithContentsOfFile:fileURL.path];
+        if (image) {
+            return image;
+        }
+    }
+
     NSString *imageNameWithoutExtension = identifier.stringByDeletingPathExtension;
     if (imageNameWithoutExtension.length > 0 && ![imageNameWithoutExtension isEqualToString:identifier]) {
         image = [UIImage imageNamed:imageNameWithoutExtension];

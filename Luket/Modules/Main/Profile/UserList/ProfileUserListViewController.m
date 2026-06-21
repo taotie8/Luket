@@ -12,6 +12,7 @@
 
 @property (nonatomic, assign) ProfileUserListMode mode;
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UIImageView *emptyStateImageView;
 @property (nonatomic, strong) LuketGlobalData *globalData;
 @property (nonatomic, copy) NSArray<LuketUser *> *users;
 
@@ -89,6 +90,11 @@
     self.tableView.rowHeight = 84.0;
     [self.tableView registerClass:ProfileUserListCell.class forCellReuseIdentifier:@"ProfileUserListCell"];
     [self.view addSubview:self.tableView];
+
+    self.emptyStateImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"CommonEmptyState"]];
+    self.emptyStateImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.emptyStateImageView.hidden = YES;
+    [self.view addSubview:self.emptyStateImageView];
 }
 
 - (void)layoutUserListViews {
@@ -109,6 +115,12 @@
     self.tableView.frame = CGRectMake(0.0, tableY, width, height - tableY);
     self.tableView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 20.0, 0.0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+
+    CGFloat emptyWidth = 121.0;
+    CGFloat emptyHeight = 142.0;
+    CGFloat emptyY = CGRectGetMinY(self.tableView.frame) + (CGRectGetHeight(self.tableView.frame) - emptyHeight) * 0.36;
+    self.emptyStateImageView.frame = CGRectMake((width - emptyWidth) / 2.0, emptyY, emptyWidth, emptyHeight);
+    [self.view bringSubviewToFront:self.emptyStateImageView];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -166,6 +178,7 @@
     if (currentUserId.length == 0) {
         self.users = @[];
         [self.tableView reloadData];
+        [self updateEmptyStateVisibility];
         return;
     }
 
@@ -191,6 +204,11 @@
 
     self.users = [self uniqueUsersFromUsers:users];
     [self.tableView reloadData];
+    [self updateEmptyStateVisibility];
+}
+
+- (void)updateEmptyStateVisibility {
+    self.emptyStateImageView.hidden = self.users.count > 0;
 }
 
 - (void)actionButtonTapped:(UIButton *)sender {

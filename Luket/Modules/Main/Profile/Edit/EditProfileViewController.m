@@ -4,10 +4,18 @@
 //
 
 #import "EditProfileViewController.h"
+#import "../../Common/LuketMediaResource.h"
+#import "../../Data/Service/LuketDataService.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
-@interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate>
+static NSString * const EditProfileAboutStorageKeyPrefix = @"ProfileAbout";
+
+@interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (nonatomic, strong) UIView *formContentView;
+@property (nonatomic, strong) UIImageView *avatarImageView;
+@property (nonatomic, strong) UIImageView *avatarIconImageView;
+@property (nonatomic, copy) NSString *selectedAvatarIdentifier;
 @property (nonatomic, strong) UITextField *nameTextField;
 @property (nonatomic, strong) UITextView *aboutTextView;
 @property (nonatomic, strong) UIButton *saveButton;
@@ -35,6 +43,7 @@
     [self setupTopCard];
     [self setupFormCard];
     [self setupSaveButton];
+    [self applyProfileData];
 }
 
 - (void)setupTopCard {
@@ -69,10 +78,22 @@
     formCardView.contentMode = UIViewContentModeScaleToFill;
     [self.formContentView addSubview:formCardView];
     
-    UIImageView *avatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalAvatarCamera"]];
-    avatarView.tag = 1002;
-    avatarView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.formContentView addSubview:avatarView];
+    self.avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
+    self.avatarImageView.tag = 1002;
+    self.avatarImageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.avatarImageView.clipsToBounds = YES;
+    self.avatarImageView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *avatarTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeAvatarTapped)];
+    [self.avatarImageView addGestureRecognizer:avatarTap];
+    [self.formContentView addSubview:self.avatarImageView];
+
+    self.avatarIconImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"EditProfileChangeAvatarButton"]];
+    self.avatarIconImageView.tag = 1005;
+    self.avatarIconImageView.contentMode = UIViewContentModeBottomRight;
+    self.avatarIconImageView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *iconTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeAvatarTapped)];
+    [self.avatarIconImageView addGestureRecognizer:iconTap];
+    [self.formContentView addSubview:self.avatarIconImageView];
     
     UILabel *nameLabel = [self formTitleLabelWithText:@"Name"];
     nameLabel.tag = 1003;
@@ -96,6 +117,21 @@
     self.aboutTextView.font = [UIFont systemFontOfSize:14.0];
     self.aboutTextView.textContainerInset = UIEdgeInsetsMake(14.0, 16.0, 14.0, 16.0);
     [self.formContentView addSubview:self.aboutTextView];
+}
+
+- (void)applyProfileData {
+    NSString *name = [self displayNameForUser:self.profileUser];
+    if (name.length > 0) {
+        self.nameTextField.text = name;
+    }
+
+    [self setImageView:self.avatarImageView identifier:self.profileUser.avatarUrl placeholderImageName:@"HomeHeroImage"];
+
+    NSString *about = self.profileAboutText.length > 0 ? self.profileAboutText : [self fallbackAboutTextForUser:self.profileUser];
+    if (about.length > 0) {
+        self.aboutTextView.text = about;
+        self.aboutTextView.textColor = UIColor.whiteColor;
+    }
 }
 
 - (void)setupSaveButton {
@@ -126,6 +162,13 @@
     
     UIImageView *avatarView = [self.formContentView viewWithTag:1002];
     avatarView.frame = CGRectMake((contentWidth - 70.0) / 2.0, 36.0, 70.0, 70.0);
+    avatarView.layer.cornerRadius = 35.0;
+
+    UIImageView *avatarIconView = [self.formContentView viewWithTag:1005];
+    avatarIconView.frame = CGRectMake(CGRectGetMaxX(avatarView.frame) - 40.0,
+                                      CGRectGetMaxY(avatarView.frame) - 26.0,
+                                      40.0,
+                                      26.0);
     
     UILabel *nameLabel = [self.formContentView viewWithTag:1003];
     nameLabel.frame = CGRectMake(20.0, 145.0, contentWidth - 40.0, 28.0);
@@ -248,6 +291,165 @@
 
 - (void)saveButtonTapped {
     [self.view endEditing:YES];
+    NSString *name = [self.nameTextField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    NSString *about = [self.aboutTextView.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if ([about isEqualToString:@"Please enter"]) {
+        about = @"";
+    }
+
+    if (name.length == 0) {
+        [self showAlertWithMessage:@"Please enter your name."];
+        return;
+    }
+
+    LuketGlobalData *globalData = self.globalData ?: LuketDataService.sharedService.cachedGlobalData;
+    NSString *userId = self.profileUser.userId.length > 0 ? self.profileUser.userId : LuketDataService.sharedService.currentLoginUserId;
+    if (!globalData || userId.length == 0) {
+        [self saveAboutText:about userId:userId];
+        [self dismissViewControllerAnimated:YES completion:nil];
+        return;
+    }
+
+    LuketUser *targetUser = [self userWithId:userId globalData:globalData];
+    targetUser.nickname = name;
+    self.profileUser.nickname = name;
+    [self saveAboutText:about userId:userId];
+
+    self.saveButton.enabled = NO;
+    [[LuketDataService sharedService] saveGlobalData:globalData completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.saveButton.enabled = YES;
+            if (!success || error) {
+                [self showAlertWithMessage:error.localizedDescription ?: @"Save failed."];
+                return;
+            }
+            [self dismissViewControllerAnimated:YES completion:nil];
+        });
+    }];
+}
+
+- (LuketUser *)userWithId:(NSString *)userId globalData:(LuketGlobalData *)globalData {
+    for (LuketUser *user in globalData.userList) {
+        if ([user.userId isEqualToString:userId]) {
+            return user;
+        }
+    }
+    return self.profileUser;
+}
+
+- (void)saveAboutText:(NSString *)about userId:(NSString *)userId {
+    if (userId.length == 0) {
+        return;
+    }
+    NSString *key = [NSString stringWithFormat:@"%@.%@", EditProfileAboutStorageKeyPrefix, userId];
+    if (about.length > 0) {
+        [NSUserDefaults.standardUserDefaults setObject:about forKey:key];
+    } else {
+        [NSUserDefaults.standardUserDefaults removeObjectForKey:key];
+    }
+    [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (NSString *)displayNameForUser:(LuketUser *)user {
+    if (user.nickname.length > 0) {
+        return user.nickname;
+    }
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    if (user.userId.length > 0) {
+        return user.userId;
+    }
+    return @"";
+}
+
+- (NSString *)fallbackAboutTextForUser:(LuketUser *)user {
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    if (user.gender.length > 0 && user.age > 0) {
+        return [NSString stringWithFormat:@"%@  %ld", user.gender, (long)user.age];
+    }
+    if (user.gender.length > 0) {
+        return user.gender;
+    }
+    if (user.age > 0) {
+        return [NSString stringWithFormat:@"%ld", (long)user.age];
+    }
+    return @"";
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)changeAvatarTapped {
+    UIImagePickerController *pickerController = [[UIImagePickerController alloc] init];
+    pickerController.delegate = self;
+    pickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    pickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:pickerController animated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
+    UIImage *image = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
+    if (image) {
+        self.avatarImageView.image = image;
+        self.selectedAvatarIdentifier = [self saveAvatarImage:image];
+    }
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (NSString *)saveAvatarImage:(UIImage *)image {
+    NSData *imageData = UIImageJPEGRepresentation(image, 0.85);
+    if (imageData.length == 0) {
+        return @"";
+    }
+
+    NSString *userId = self.profileUser.userId.length > 0 ? self.profileUser.userId : LuketDataService.sharedService.currentLoginUserId;
+    NSString *fileName = [NSString stringWithFormat:@"ProfileAvatar.%@.jpg", userId.length > 0 ? userId : NSUUID.UUID.UUIDString];
+    NSURL *documentsURL = [NSFileManager.defaultManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask].firstObject;
+    NSURL *avatarsURL = [documentsURL URLByAppendingPathComponent:@"Avatars" isDirectory:YES];
+    NSError *directoryError;
+    [NSFileManager.defaultManager createDirectoryAtURL:avatarsURL withIntermediateDirectories:YES attributes:nil error:&directoryError];
+    if (directoryError) {
+        return @"";
+    }
+
+    NSURL *fileURL = [avatarsURL URLByAppendingPathComponent:fileName];
+    NSError *writeError;
+    BOOL saved = [imageData writeToURL:fileURL options:NSDataWritingAtomic error:&writeError];
+    return saved && !writeError ? fileURL.path : @"";
+}
+
+- (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {
+    UIImage *placeholderImage = [UIImage imageNamed:placeholderImageName];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:identifier];
+    if (localImage) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = localImage;
+        return;
+    }
+
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    if (!imageURL) {
+        [imageView sd_cancelCurrentImageLoad];
+        imageView.image = placeholderImage;
+        return;
+    }
+
+    [imageView sd_setImageWithURL:imageURL
+                 placeholderImage:placeholderImage
+                          options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 - (void)dealloc {

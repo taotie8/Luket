@@ -94,6 +94,7 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 @interface MessageViewController () <UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UIImageView *emptyStateImageView;
 @property (nonatomic, copy) NSArray<NSDictionary<NSString *, id> *> *conversations;
 @property (nonatomic, copy) NSArray<LuketUser *> *users;
 
@@ -140,6 +141,11 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
     [self.tableView registerClass:MessageCell.class forCellReuseIdentifier:@"MessageCell"];
     [self.view addSubview:self.tableView];
 
+    self.emptyStateImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"CommonEmptyState"]];
+    self.emptyStateImageView.contentMode = UIViewContentModeScaleAspectFit;
+    self.emptyStateImageView.hidden = YES;
+    [self.view addSubview:self.emptyStateImageView];
+
     UIImageView *headerWaveView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MessageHeaderWave"]];
     headerWaveView.tag = 1001;
     headerWaveView.contentMode = UIViewContentModeScaleToFill;
@@ -166,6 +172,12 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
     self.tableView.frame = CGRectMake(0.0, 154.0, width, height - 154.0);
     self.tableView.contentInset = UIEdgeInsetsMake(0.0, 0.0, self.view.safeAreaInsets.bottom + 100.0, 0.0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+
+    CGFloat emptyWidth = 121.0;
+    CGFloat emptyHeight = 142.0;
+    CGFloat emptyY = CGRectGetMinY(self.tableView.frame) + (CGRectGetHeight(self.tableView.frame) - emptyHeight) * 0.36;
+    self.emptyStateImageView.frame = CGRectMake((width - emptyWidth) / 2.0, emptyY, emptyWidth, emptyHeight);
+    [self.view bringSubviewToFront:self.emptyStateImageView];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -255,6 +267,11 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 
     self.conversations = conversations.copy;
     [self.tableView reloadData];
+    [self updateEmptyStateVisibility];
+}
+
+- (void)updateEmptyStateVisibility {
+    self.emptyStateImageView.hidden = self.conversations.count > 0;
 }
 
 - (NSString *)displayNameForUserId:(NSString *)userId {
