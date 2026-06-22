@@ -20,7 +20,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.contentView.backgroundColor = UIColor.whiteColor;
-        self.contentView.layer.cornerRadius = 8.0;
+        self.contentView.layer.cornerRadius = 11.0;
         self.contentView.layer.masksToBounds = YES;
         
         self.diamondImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"DiamondRechargeSmallIcon"]];

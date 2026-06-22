@@ -11,6 +11,7 @@
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, copy) NSArray<NSString *> *diamondAmounts;
 @property (nonatomic, copy) NSArray<NSString *> *prices;
+@property (nonatomic, copy) NSArray<NSString *> *productIds;
 
 @end
 
@@ -19,8 +20,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.diamondAmounts = @[@"400", @"800", @"2190", @"2450", @"3950", @"4900", @"5700", @"9800", @"24500", @"49000"];
-    self.prices = @[@"0.99$", @"1.99$", @"3.99$", @"4.99$", @"8.99$", @"9.99$", @"13.99$", @"19.99$", @"49.99$", @"99.99$"];
+    self.diamondAmounts = @[@"63700", @"29400", @"17800", @"10800", @"5150", @"2450", @"800", @"400"];
+    self.prices = @[@"99.99$", @"49.99$", @"29.99$", @"19.99$", @"9.99$", @"4.99$", @"1.99$", @"0.99$"];
+    self.productIds = @[@"kztuqslzaxonwokk",
+                        @"vmklsygyngqotnof",
+                        @"ioncgjewijrmngfg",
+                        @"zzvbopwqpvcfntih",
+                        @"uvlzbbyunoaisogv",
+                        @"uumgjkxqiwgrzfwz",
+                        @"lkbdzuxbhbjlavuq",
+                        @"glintxqpisksdpfe"];
     self.view.backgroundColor = [self pageBackgroundColor];
     [self setupViews];
     [self setupCollectionView];
@@ -119,6 +128,7 @@
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     DiamondRechargeCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"DiamondRechargeCell" forIndexPath:indexPath];
+    cell.backgroundColor = UIColor.clearColor;
     [cell configureWithAmount:self.diamondAmounts[indexPath.item] price:self.prices[indexPath.item]];
     return cell;
 }
@@ -142,7 +152,7 @@
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.item >= self.diamondAmounts.count || indexPath.item >= self.prices.count) {
+    if (indexPath.item >= self.diamondAmounts.count || indexPath.item >= self.prices.count || indexPath.item >= self.productIds.count) {
         return;
     }
 
@@ -156,16 +166,17 @@
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
                                                        style:UIAlertActionStyleDefault
                                                      handler:^(UIAlertAction * _Nonnull action) {
-        [self showStoreKitUnavailableAlert];
+        [self showStoreKitUnavailableAlertWithProductId:self.productIds[indexPath.item]];
     }];
     [alertController addAction:cancelAction];
     [alertController addAction:okAction];
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
-- (void)showStoreKitUnavailableAlert {
+- (void)showStoreKitUnavailableAlertWithProductId:(NSString *)productId {
+    NSString *message = [NSString stringWithFormat:@"In-app purchase products are not configured yet.\nProduct ID: %@", productId];
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
-                                                                             message:@"In-app purchase products are not configured yet."
+                                                                             message:message
                                                                       preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
                                                        style:UIAlertActionStyleDefault
