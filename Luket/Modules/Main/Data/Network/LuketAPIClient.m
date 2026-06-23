@@ -36,7 +36,7 @@ typedef NS_ENUM(NSInteger, LuketAPIClientErrorCode) {
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _baseURLString = @"https://app.yykbzdm.com";//@"https://dev.chavytogo.com/";
+        _baseURLString = @"https://app.yykbzdm.com";
         NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.defaultSessionConfiguration;
         configuration.timeoutIntervalForRequest = 15.0;
         configuration.timeoutIntervalForResource = 30.0;

@@ -7,8 +7,6 @@
 
 static NSString * const LuketMediaBaseURLString = @"https://app.yykbzdm.com/473027/";
 
-//@"https://xnisk.chavytogo.com/file/luket/";
-
 @implementation LuketMediaResource
 
 + (nullable UIImage *)localImageWithIdentifier:(nullable NSString *)identifier {

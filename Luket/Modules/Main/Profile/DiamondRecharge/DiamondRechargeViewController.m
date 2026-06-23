@@ -5,6 +5,7 @@
 
 #import "DiamondRechargeViewController.h"
 #import "Cell/DiamondRechargeCell.h"
+#import "../../Common/LuketDiamondStore.h"
 
 @interface DiamondRechargeViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
@@ -74,7 +75,7 @@
     
     UILabel *diamondCountLabel = [[UILabel alloc] init];
     diamondCountLabel.tag = 1006;
-    diamondCountLabel.text = @"300";
+    diamondCountLabel.text = [NSString stringWithFormat:@"%ld", (long)LuketDiamondStore.currentDiamonds];
     diamondCountLabel.textColor = [self darkTextColor];
     diamondCountLabel.font = [self titleFontWithSize:24.0];
     [self.view addSubview:diamondCountLabel];

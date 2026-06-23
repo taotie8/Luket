@@ -7,6 +7,7 @@
 #import "AISwimmingResultViewController.h"
 #import "AISwimmingHistoryViewController.h"
 #import "DeepSeekService.h"
+#import "../Common/LuketDiamondStore.h"
 
 static NSString * const AISwimmingPlaceholderText = @"Please describe your expectations for an\nideal cycling outfit....";
 static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
@@ -275,13 +276,18 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
 }
 
 - (BOOL)hasEnoughDiamondsForAI {
-    return YES;
+    return [LuketDiamondStore hasEnoughDiamondsForAI];
 }
 
 - (void)requestDeepSeekResult {
     NSString *prompt = [self currentPromptText];
     if (prompt.length == 0) {
         [self showAlertWithMessage:@"Please enter your requirements."];
+        return;
+    }
+
+    if (![LuketDiamondStore hasEnoughDiamondsForAI]) {
+        [self showDiamondDialogWithEnoughDiamonds:NO];
         return;
     }
 
@@ -307,6 +313,11 @@ static NSString * const AISwimmingHistoryStorageKey = @"AISwimmingHistoryItems";
         [strongSelf hideLoadingView];
         if (error || responseText.length == 0) {
             [strongSelf showAlertWithMessage:error.localizedDescription ?: @"DeepSeek request failed."];
+            return;
+        }
+
+        if (![LuketDiamondStore consumeDiamondsForAI]) {
+            [strongSelf showDiamondDialogWithEnoughDiamonds:NO];
             return;
         }
 

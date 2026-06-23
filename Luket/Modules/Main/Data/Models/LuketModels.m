@@ -99,6 +99,9 @@ static NSArray *LuketDictionaryArrayValue(NSArray *models) {
             _nickname = LuketStringValue(dictionary[@"userName"]);
         }
         _avatarUrl = LuketStringValue(dictionary[@"avatarUrl"]);
+        if (_avatarUrl.length == 0) {
+            _avatarUrl = LuketStringValue(dictionary[@"avatar"]);
+        }
         _age = LuketIntegerValue(dictionary[@"age"]);
         _birthday = LuketStringValue(dictionary[@"birthday"]);
         _gender = LuketStringValue(dictionary[@"gender"]);

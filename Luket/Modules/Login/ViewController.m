@@ -211,7 +211,7 @@
         
         [self setLoggingIn:NO];
         if (error) {
-            [self showAlertWithMessage:error.localizedDescription ?: @"Login failed."];
+            [self showAlertWithMessage:@"Login failed."];
             return;
         }
         

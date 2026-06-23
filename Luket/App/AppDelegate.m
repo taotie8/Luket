@@ -12,7 +12,7 @@
 @end
 
 @implementation AppDelegate
-// luket666@gmail.com
+// curgelis@gmail.com
 // 123456
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.

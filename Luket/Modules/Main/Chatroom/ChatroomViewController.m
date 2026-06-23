@@ -18,7 +18,7 @@ typedef NS_ENUM(NSUInteger, ChatroomSegment) {
 
 static CGFloat const ChatroomRoomCellHeight = 133.0;
 static CGFloat const ChatroomRoomCardHeight = 117.0;
-static CGFloat const ChatroomRoomAvatarSize = 117.0;
+static CGFloat const ChatroomRoomAvatarSize = 108.0;
 static NSString * const ChatroomListFavoriteGroupKeyPrefix = @"ChatroomFavoriteGroup";
 static NSString * const ChatroomListBlockedGroupKeyPrefix = @"ChatroomBlockedGroup";
 
@@ -121,7 +121,7 @@ static NSString * const ChatroomListBlockedGroupKeyPrefix = @"ChatroomBlockedGro
     backgroundPhotoView.frame = CGRectMake(119.0 * scale, 5.0 * scale, width - 134.0 * scale, height - 10.0 * scale);
     backgroundPhotoView.layer.cornerRadius = 10.0 * scale;
 
-    self.photoImageView.frame = CGRectMake(8.0 * scale, 0.0, ChatroomRoomAvatarSize, ChatroomRoomAvatarSize);
+    self.photoImageView.frame = CGRectMake(12.0 * scale, 4.0, ChatroomRoomAvatarSize, ChatroomRoomAvatarSize);
     self.photoImageView.layer.cornerRadius = 12.0 * scale;
 
     UIView *fadeView = [self viewWithTag:1002];

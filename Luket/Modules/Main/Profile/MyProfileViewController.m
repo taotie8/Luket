@@ -8,6 +8,7 @@
 #import "DiamondRecharge/DiamondRechargeViewController.h"
 #import "Edit/EditProfileViewController.h"
 #import "UserList/ProfileUserListViewController.h"
+#import "../Common/LuketDiamondStore.h"
 #import "../Common/LuketMediaResource.h"
 #import "../Data/Service/LuketDataService.h"
 #import "../Settings/SettingViewController.h"
@@ -197,14 +198,46 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
 
 - (LuketUser *)currentUserFromGlobalData:(LuketGlobalData *)globalData {
     NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    NSString *currentEmail = LuketDataService.sharedService.currentUser.email;
+    LuketUser *userIdMatchedUser = nil;
     if (currentUserId.length > 0) {
         for (LuketUser *user in globalData.userList) {
             if ([user.userId isEqualToString:currentUserId]) {
+                userIdMatchedUser = user;
+                break;
+            }
+        }
+    }
+
+    if (currentEmail.length > 0) {
+        LuketUser *emailMatchedPostingUser = [self postingUserWithEmail:currentEmail inUsers:globalData.userList];
+        if (emailMatchedPostingUser) {
+            return emailMatchedPostingUser;
+        }
+
+        for (LuketUser *user in globalData.userList) {
+            if ([user.email isEqualToString:currentEmail]) {
                 return user;
             }
         }
     }
-    return LuketDataService.sharedService.currentUser;
+
+    return userIdMatchedUser ?: LuketDataService.sharedService.currentUser;
+}
+
+- (LuketUser *)postingUserWithEmail:(NSString *)email inUsers:(NSArray<LuketUser *> *)users {
+    if (email.length == 0) {
+        return nil;
+    }
+
+    for (LuketPost *post in [self.globalData.postList reverseObjectEnumerator]) {
+        for (LuketUser *user in users) {
+            if ([user.userId isEqualToString:post.publishUserId] && [user.email isEqualToString:email]) {
+                return user;
+            }
+        }
+    }
+    return nil;
 }
 
 - (NSArray<LuketPost *> *)postsForUserId:(NSString *)userId {
@@ -227,11 +260,13 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
     UIImageView *avatarView = [self.view viewWithTag:MyProfileViewTagAvatar];
     UILabel *followCountLabel = [self.view viewWithTag:MyProfileViewTagFollowCount];
     UILabel *fansCountLabel = [self.view viewWithTag:MyProfileViewTagFansCount];
+    UILabel *diamondCountLabel = [self.view viewWithTag:MyProfileViewTagDiamondCount];
 
     nameLabel.text = [self displayNameForUser:self.currentUser];
     bioLabel.text = [self bioTextForUser:self.currentUser];
     followCountLabel.text = [NSString stringWithFormat:@"%ld", (long)[self followingCountForUserId:self.currentUser.userId]];
     fansCountLabel.text = [NSString stringWithFormat:@"%ld", (long)[self fansCountForUserId:self.currentUser.userId]];
+    diamondCountLabel.text = [NSString stringWithFormat:@"%ld", (long)LuketDiamondStore.currentDiamonds];
     [self setImageView:avatarView identifier:self.currentUser.avatarUrl placeholderImageName:@"HomeHeroImage"];
 }
 
@@ -466,15 +501,16 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
 }
 
 - (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {
+    NSString *trimmedIdentifier = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     UIImage *placeholderImage = [UIImage imageNamed:placeholderImageName];
-    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:identifier];
+    UIImage *localImage = [LuketMediaResource localImageWithIdentifier:trimmedIdentifier];
     if (localImage) {
         [imageView sd_cancelCurrentImageLoad];
         imageView.image = localImage;
         return;
     }
 
-    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:identifier];
+    NSURL *imageURL = [LuketMediaResource imageURLWithIdentifier:trimmedIdentifier];
     if (!imageURL) {
         [imageView sd_cancelCurrentImageLoad];
         imageView.image = placeholderImage;
