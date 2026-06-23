@@ -17,11 +17,12 @@ static NSString * const LuketStoredPasswordKey = @"password";
 static NSString * const LuketStoredAgeKey = @"age";
 static NSString * const LuketStoredCreateTimeKey = @"createTime";
 static NSString * const LuketGlobalConfigId = @"2013934659768873312";
-static NSString * const LuketAPIPathGlobalData = @"api/api/tenant/entity/config/2013934659768873312";
-static NSString * const LuketAPIPathSaveGlobalData = @"api/api/tenant/entity/config/save";
+static NSString * const LuketAPIPathGlobalData = @"397264";//@"api/api/tenant/entity/config/2013934659768873312";
+static NSString * const LuketAPIPathSaveGlobalData = @"034216";//@"api/api/tenant/entity/config/save";
 static NSString * const LuketAPIPathUserList = @"/user/list";
-static NSString * const LuketAPIPathLogin = @"api/account/mail/passwordLogin";
-static NSString * const LuketAPIPathRegister = @"api/account/mail/register";
+
+static NSString * const LuketAPIPathLogin = @"946101";//@"api/account/mail/passwordLogin";
+static NSString * const LuketAPIPathRegister = @"809881";//@"api/account/mail/register";
 static NSString * const LuketAPIPathPostList = @"/post/list";
 static NSString * const LuketAPIPathPostDetail = @"/post/detail";
 static NSString * const LuketAPIPathPostComments = @"/post/comments";

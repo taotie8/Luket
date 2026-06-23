@@ -163,28 +163,32 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JPTS6M4T5B;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K2D8KTNH2W;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Luket/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Luket;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Luket requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luket requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luket memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
+				INFOPLIST_KEY_CFBundleDisplayName = Luvet;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Luvet requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luvet requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luvet needs access to your photo library for sharing memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = im.seex.lobo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -199,28 +203,32 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JPTS6M4T5B;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K2D8KTNH2W;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Luket/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Luket;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Luket requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luket requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luket memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
+				INFOPLIST_KEY_CFBundleDisplayName = Luvet;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Luvet requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luvet requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luvet needs access to your photo library for sharing memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = im.seex.lobo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
