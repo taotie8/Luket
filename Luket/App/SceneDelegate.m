@@ -9,6 +9,7 @@
 #import "../Modules/Main/TabBar/MainTabBarController.h"
 #import "../Modules/Main/Data/Service/LuketDataService.h"
 #import "ViewController.h"
+#import "PersonalViewController.h"
 @interface SceneDelegate ()
 
 @end

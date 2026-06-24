@@ -4,8 +4,8 @@
 //
 
 #import "SignUpViewController.h"
+#import "PersonalViewController.h"
 #import "../Main/Data/Service/LuketDataService.h"
-#import "../Main/TabBar/MainTabBarController.h"
 
 @interface SignUpViewController () <UITextFieldDelegate>
 
@@ -180,7 +180,7 @@
             return;
         }
 
-        [self enterMainPage];
+        [self enterPersonalPage];
     }];
 }
 
@@ -194,18 +194,10 @@
     self.signUpButtonImageView.alpha = signingUp ? 0.72 : 1.0;
 }
 
-- (void)enterMainPage {
-    UIWindow *window = self.view.window;
-    MainTabBarController *tabBarController = [[MainTabBarController alloc] init];
-    if (!window) {
-        tabBarController.modalPresentationStyle = UIModalPresentationFullScreen;
-        [self presentViewController:tabBarController animated:YES completion:nil];
-        return;
-    }
-
-    [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-        window.rootViewController = tabBarController;
-    } completion:nil];
+- (void)enterPersonalPage {
+    PersonalViewController *viewController = [[PersonalViewController alloc] init];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 
 - (void)showAlertWithMessage:(NSString *)message {

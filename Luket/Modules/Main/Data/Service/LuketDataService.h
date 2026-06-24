@@ -48,6 +48,10 @@ typedef void (^LuketActionCompletion)(BOOL success, NSString *message, NSError *
 - (void)registerWithEmail:(NSString *)email
                  password:(NSString *)password
                completion:(LuketUserCompletion)completion;
+- (void)updateCurrentUserProfileWithNickname:(nullable NSString *)nickname
+                                    avatarUrl:(nullable NSString *)avatarUrl
+                                          age:(NSInteger)age
+                                   completion:(LuketActionCompletion)completion;
 
 - (void)fetchPostsWithCategory:(nullable NSString *)postCategory completion:(LuketPostsCompletion)completion;
 - (void)fetchPostDetailWithPostId:(NSString *)postId completion:(LuketPostCompletion)completion;

@@ -8,6 +8,7 @@
 #import "../Common/MoreActionSheetView.h"
 #import "../Common/LuketMediaResource.h"
 #import "../Data/Service/LuketDataService.h"
+#import "../Detail/DetailViewController.h"
 #import "../Report/ReportViewController.h"
 #import "../Message/FriendChatViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
@@ -104,8 +105,13 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     backgroundView.tag = UserProfileViewTagBackground;
     backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     backgroundView.clipsToBounds = YES;
-    backgroundView.alpha = 0.55;
     [self.view addSubview:backgroundView];
+
+    UIImageView *bgImageView = [[UIImageView alloc] init];
+    bgImageView.image = [UIImage imageNamed:@"profile_top"];
+    bgImageView.contentMode = UIViewContentModeScaleAspectFill;
+    [self.view addSubview:bgImageView];
+    bgImageView.frame = CGRectMake(0, 0, self.view.frame.size.width, 375);
 }
 
 - (void)setupProfileViews {
@@ -119,7 +125,7 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     [backButton setImage:[[UIImage imageNamed:@"AuthBackIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [topBarView addSubview:backButton];
-
+// profile_top
     UIImageView *topAvatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"HomeHeroImage"]];
     topAvatarView.tag = UserProfileViewTagTopAvatar;
     topAvatarView.contentMode = UIViewContentModeScaleAspectFill;
@@ -295,10 +301,6 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
 }
 
 - (NSString *)backgroundIdentifierForUser:(LuketUser *)user {
-    NSString *postCoverIdentifier = [self coverIdentifierForPost:self.profilePosts.firstObject];
-    if (postCoverIdentifier.length > 0) {
-        return postCoverIdentifier;
-    }
     return user.avatarUrl ?: @"";
 }
 
@@ -454,6 +456,28 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
         [cell configureWithText:self.postTexts[indexPath.item] index:indexPath.item];
     }
     return cell;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.usingFallbackPosts || indexPath.item >= self.profilePosts.count) {
+        return;
+    }
+
+    LuketPost *post = self.profilePosts[indexPath.item];
+    if (![self isDetailMediaPost:post]) {
+        return;
+    }
+
+    DetailViewController *detailViewController = [[DetailViewController alloc] init];
+    detailViewController.post = post;
+    detailViewController.globalData = self.globalData;
+    detailViewController.author = self.profileUser;
+    detailViewController.users = self.globalData.userList ?: @[];
+    detailViewController.postComments = [self commentsForPostId:post.postId];
+    detailViewController.postLikedByCurrentUser = [self currentUserLikedPostId:post.postId];
+    detailViewController.authorFollowedByCurrentUser = [self currentUserFollowedUserId:post.publishUserId];
+    detailViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:detailViewController animated:YES completion:nil];
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -656,6 +680,15 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     return NO;
 }
 
+- (BOOL)currentUserFollowedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return NO;
+    }
+
+    return [self currentUserId:currentUserId followsUserId:targetUserId];
+}
+
 - (void)updateGlobalFollowListForUserId:(NSString *)userId targetUserId:(NSString *)targetUserId followed:(BOOL)followed {
     NSMutableArray<LuketFollowRelation *> *followList = self.globalData.followList.mutableCopy ?: [NSMutableArray array];
     NSIndexSet *matchingIndexes = [followList indexesOfObjectsPassingTest:^BOOL(LuketFollowRelation *relation, NSUInteger index, BOOL *stop) {
@@ -693,6 +726,39 @@ typedef NS_ENUM(NSInteger, UserProfileViewTag) {
     NSString *imageName = self.followed ? @"DetailFollowRemoveButton" : @"DetailFollowAddButton";
 
     [followButton setImage:[[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+}
+
+- (BOOL)isDetailMediaPost:(LuketPost *)post {
+    NSString *mediaType = [post.mediaType lowercaseString];
+    return [mediaType isEqualToString:LuketPostMediaTypeImage] || [mediaType isEqualToString:LuketPostMediaTypeVideo];
+}
+
+- (NSArray<LuketPostComment *> *)commentsForPostId:(NSString *)postId {
+    if (postId.length == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LuketPostComment *> *comments = [NSMutableArray array];
+    for (LuketPostComment *comment in self.globalData.postCommentList) {
+        if ([comment.postId isEqualToString:postId]) {
+            [comments addObject:comment];
+        }
+    }
+    return comments.copy;
+}
+
+- (BOOL)currentUserLikedPostId:(NSString *)postId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (postId.length == 0 || currentUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketLikeRelation *relation in self.globalData.likeList) {
+        if ([relation.postId isEqualToString:postId] && [relation.userId isEqualToString:currentUserId]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 - (NSString *)coverIdentifierForPost:(LuketPost *)post {

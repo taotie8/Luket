@@ -6,13 +6,22 @@
 #import "DiamondRechargeViewController.h"
 #import "Cell/DiamondRechargeCell.h"
 #import "../../Common/LuketDiamondStore.h"
+#import <StoreKit/StoreKit.h>
 
-@interface DiamondRechargeViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
+@interface DiamondRechargeViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, SKProductsRequestDelegate, SKPaymentTransactionObserver>
 
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, copy) NSArray<NSString *> *diamondAmounts;
 @property (nonatomic, copy) NSArray<NSString *> *prices;
 @property (nonatomic, copy) NSArray<NSString *> *productIds;
+@property (nonatomic, copy) NSDictionary<NSString *, NSNumber *> *diamondAmountsByProductId;
+@property (nonatomic, strong) SKProductsRequest *productsRequest;
+@property (nonatomic, copy) NSString *pendingProductId;
+@property (nonatomic, assign) NSInteger pendingDiamondAmount;
+@property (nonatomic, assign) BOOL purchasing;
+@property (nonatomic, strong) UIView *loadingOverlayView;
+@property (nonatomic, strong) UIView *loadingContainerView;
+@property (nonatomic, strong) UIActivityIndicatorView *loadingIndicatorView;
 
 @end
 
@@ -31,9 +40,29 @@
                         @"uumgjkxqiwgrzfwz",
                         @"lkbdzuxbhbjlavuq",
                         @"glintxqpisksdpfe"];
+    [self buildProductLookup];
+    [SKPaymentQueue.defaultQueue addTransactionObserver:self];
     self.view.backgroundColor = [self pageBackgroundColor];
     [self setupViews];
     [self setupCollectionView];
+}
+
+- (void)dealloc {
+    [self.productsRequest cancel];
+    [SKPaymentQueue.defaultQueue removeTransactionObserver:self];
+}
+
+- (void)buildProductLookup {
+    NSMutableDictionary<NSString *, NSNumber *> *lookup = [NSMutableDictionary dictionary];
+    NSUInteger count = MIN(self.productIds.count, self.diamondAmounts.count);
+    for (NSUInteger index = 0; index < count; index++) {
+        NSString *productId = self.productIds[index];
+        NSInteger amount = self.diamondAmounts[index].integerValue;
+        if (productId.length > 0 && amount > 0) {
+            lookup[productId] = @(amount);
+        }
+    }
+    self.diamondAmountsByProductId = lookup.copy;
 }
 
 - (void)viewDidLayoutSubviews {
@@ -79,6 +108,8 @@
     diamondCountLabel.textColor = [self darkTextColor];
     diamondCountLabel.font = [self titleFontWithSize:24.0];
     [self.view addSubview:diamondCountLabel];
+
+    [self setupLoadingView];
 }
 
 - (void)setupCollectionView {
@@ -91,8 +122,29 @@
     self.collectionView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
+    self.collectionView.allowsSelection = YES;
     [self.collectionView registerClass:DiamondRechargeCell.class forCellWithReuseIdentifier:@"DiamondRechargeCell"];
     [self.view addSubview:self.collectionView];
+    [self.view bringSubviewToFront:self.loadingOverlayView];
+}
+
+- (void)setupLoadingView {
+    self.loadingOverlayView = [[UIView alloc] init];
+    self.loadingOverlayView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.18];
+    self.loadingOverlayView.hidden = YES;
+    self.loadingOverlayView.userInteractionEnabled = YES;
+    [self.view addSubview:self.loadingOverlayView];
+
+    self.loadingContainerView = [[UIView alloc] init];
+    self.loadingContainerView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.58];
+    self.loadingContainerView.layer.cornerRadius = 18.0;
+    self.loadingContainerView.layer.masksToBounds = YES;
+    [self.loadingOverlayView addSubview:self.loadingContainerView];
+
+    self.loadingIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+    self.loadingIndicatorView.color = UIColor.whiteColor;
+    self.loadingIndicatorView.hidesWhenStopped = YES;
+    [self.loadingContainerView addSubview:self.loadingIndicatorView];
 }
 
 - (void)layoutRechargeViews {
@@ -121,6 +173,14 @@
     self.collectionView.contentInset = UIEdgeInsetsMake(9.0, 0.0, self.view.safeAreaInsets.bottom + 16.0, 0.0);
     self.collectionView.scrollIndicatorInsets = self.collectionView.contentInset;
     [self.collectionView.collectionViewLayout invalidateLayout];
+
+    self.loadingOverlayView.frame = self.view.bounds;
+    CGFloat loadingSize = 78.0;
+    self.loadingContainerView.frame = CGRectMake((width - loadingSize) / 2.0,
+                                                 (height - loadingSize) / 2.0,
+                                                 loadingSize,
+                                                 loadingSize);
+    self.loadingIndicatorView.frame = self.loadingContainerView.bounds;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
@@ -167,15 +227,150 @@
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
                                                        style:UIAlertActionStyleDefault
                                                      handler:^(UIAlertAction * _Nonnull action) {
-        [self showStoreKitUnavailableAlertWithProductId:self.productIds[indexPath.item]];
+        [self startPurchaseAtIndex:indexPath.item];
     }];
     [alertController addAction:cancelAction];
     [alertController addAction:okAction];
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
-- (void)showStoreKitUnavailableAlertWithProductId:(NSString *)productId {
-    NSString *message = [NSString stringWithFormat:@"In-app purchase products are not configured yet.\nProduct ID: %@", productId];
+- (void)startPurchaseAtIndex:(NSUInteger)index {
+    if (self.purchasing) {
+        return;
+    }
+    if (![SKPaymentQueue canMakePayments]) {
+        [self showAlertWithMessage:@"In-app purchases are disabled on this device."];
+        return;
+    }
+    if (index >= self.productIds.count || index >= self.diamondAmounts.count) {
+        return;
+    }
+
+    NSString *productId = self.productIds[index];
+    if (productId.length == 0) {
+        return;
+    }
+
+    [self.productsRequest cancel];
+    self.pendingProductId = productId;
+    self.pendingDiamondAmount = self.diamondAmounts[index].integerValue;
+    [self setPurchasing:YES];
+
+    NSSet<NSString *> *productIdentifiers = [NSSet setWithObject:productId];
+    self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
+    self.productsRequest.delegate = self;
+    [self.productsRequest start];
+}
+
+- (void)setPurchasing:(BOOL)purchasing {
+    _purchasing = purchasing;
+    self.collectionView.userInteractionEnabled = !purchasing;
+    self.collectionView.alpha = purchasing ? 0.72 : 1.0;
+    [self updateLoadingVisible:purchasing];
+}
+
+- (void)updateLoadingVisible:(BOOL)visible {
+    self.loadingOverlayView.hidden = !visible;
+    if (visible) {
+        [self.view bringSubviewToFront:self.loadingOverlayView];
+        [self.loadingIndicatorView startAnimating];
+    } else {
+        [self.loadingIndicatorView stopAnimating];
+    }
+}
+
+- (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response {
+    SKProduct *matchedProduct = nil;
+    for (SKProduct *product in response.products) {
+        if ([product.productIdentifier isEqualToString:self.pendingProductId]) {
+            matchedProduct = product;
+            break;
+        }
+    }
+
+    if (!matchedProduct) {
+        NSString *message = [NSString stringWithFormat:@"Purchase product is not available.\nProduct ID: %@", self.pendingProductId ?: @""];
+        [self setPurchasing:NO];
+        [self showAlertWithMessage:message];
+        return;
+    }
+
+    SKPayment *payment = [SKPayment paymentWithProduct:matchedProduct];
+    [SKPaymentQueue.defaultQueue addPayment:payment];
+}
+
+- (void)request:(SKRequest *)request didFailWithError:(NSError *)error {
+    [self setPurchasing:NO];
+    [self showAlertWithMessage:error.localizedDescription ?: @"Unable to load purchase product."];
+}
+
+- (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray<SKPaymentTransaction *> *)transactions {
+    for (SKPaymentTransaction *transaction in transactions) {
+        switch (transaction.transactionState) {
+            case SKPaymentTransactionStatePurchased:
+                [self completePurchaseWithTransaction:transaction];
+                break;
+            case SKPaymentTransactionStateFailed:
+                [self failPurchaseWithTransaction:transaction];
+                break;
+            case SKPaymentTransactionStateRestored:
+                [SKPaymentQueue.defaultQueue finishTransaction:transaction];
+                [self setPurchasing:NO];
+                break;
+            case SKPaymentTransactionStateDeferred:
+                [self setPurchasing:NO];
+                [self showAlertWithMessage:@"Purchase is pending approval."];
+                break;
+            case SKPaymentTransactionStatePurchasing:
+                break;
+        }
+    }
+}
+
+- (void)completePurchaseWithTransaction:(SKPaymentTransaction *)transaction {
+    NSString *productId = transaction.payment.productIdentifier;
+    NSInteger diamondAmount = [self diamondAmountForProductId:productId];
+    if (diamondAmount <= 0 && [productId isEqualToString:self.pendingProductId]) {
+        diamondAmount = self.pendingDiamondAmount;
+    }
+
+    if (diamondAmount > 0) {
+        NSInteger updatedDiamonds = LuketDiamondStore.currentDiamonds + diamondAmount;
+        [LuketDiamondStore setCurrentDiamonds:updatedDiamonds];
+        [self refreshDiamondCount];
+        NSString *message = [NSString stringWithFormat:@"Recharge successful. %@ diamonds added.", @(diamondAmount)];
+        [self showAlertWithMessage:message];
+    }
+
+    [SKPaymentQueue.defaultQueue finishTransaction:transaction];
+    [self clearPendingPurchaseState];
+}
+
+- (void)failPurchaseWithTransaction:(SKPaymentTransaction *)transaction {
+    NSError *error = transaction.error;
+    if (error.code != SKErrorPaymentCancelled) {
+        [self showAlertWithMessage:error.localizedDescription ?: @"Purchase failed."];
+    }
+    [SKPaymentQueue.defaultQueue finishTransaction:transaction];
+    [self clearPendingPurchaseState];
+}
+
+- (NSInteger)diamondAmountForProductId:(NSString *)productId {
+    return self.diamondAmountsByProductId[productId].integerValue;
+}
+
+- (void)clearPendingPurchaseState {
+    self.pendingProductId = nil;
+    self.pendingDiamondAmount = 0;
+    [self setPurchasing:NO];
+}
+
+- (void)refreshDiamondCount {
+    UILabel *diamondCountLabel = [self.view viewWithTag:1006];
+    diamondCountLabel.text = [NSString stringWithFormat:@"%ld", (long)LuketDiamondStore.currentDiamonds];
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
                                                                              message:message
                                                                       preferredStyle:UIAlertControllerStyleAlert];

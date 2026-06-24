@@ -373,6 +373,69 @@ static NSString * const LuketAPIPathBlockUser = @"/user/block";
     }];
 }
 
+- (void)updateCurrentUserProfileWithNickname:(NSString *)nickname
+                                    avatarUrl:(NSString *)avatarUrl
+                                          age:(NSInteger)age
+                                   completion:(LuketActionCompletion)completion {
+    LuketUser *currentUser = self.currentUser ?: [self currentUserForGlobalData];
+    if (currentUser.userId.length == 0 && self.currentLoginUserId.length > 0) {
+        currentUser = [LuketUser modelWithDictionary:[self currentUserDictionaryForGlobalData]];
+    }
+    if (currentUser.userId.length == 0) {
+        if (completion) {
+            completion(NO, @"Missing current user.", nil);
+        }
+        return;
+    }
+
+    NSString *trimmedNickname = [nickname stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    NSString *trimmedAvatarUrl = [avatarUrl stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (trimmedNickname.length > 0) {
+        currentUser.nickname = trimmedNickname;
+    }
+    if (trimmedAvatarUrl.length > 0) {
+        currentUser.avatarUrl = trimmedAvatarUrl;
+    }
+    if (age > 0) {
+        currentUser.age = age;
+    }
+
+    self.currentUser = currentUser;
+    self.currentLoginUserId = currentUser.userId;
+    [self storeLoginStringValue:currentUser.userId forKey:LuketStoredUserIdKey];
+    [self storeLoginStringValue:currentUser.nickname forKey:LuketStoredUserNameKey];
+    [self storeLoginStringValue:currentUser.avatarUrl forKey:LuketStoredAvatarUrlKey];
+    [self storeLoginStringValue:[NSString stringWithFormat:@"%ld", (long)currentUser.age] forKey:LuketStoredAgeKey];
+    [NSUserDefaults.standardUserDefaults synchronize];
+
+    [self loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
+        if (error) {
+            if (completion) {
+                completion(NO, error.localizedDescription ?: @"Save failed.", error);
+            }
+            return;
+        }
+
+        LuketGlobalData *globalData = data ?: [[LuketGlobalData alloc] init];
+        NSMutableArray<LuketUser *> *users = globalData.userList.mutableCopy ?: [NSMutableArray array];
+        BOOL updated = NO;
+        for (LuketUser *user in users) {
+            if ([user.userId isEqualToString:currentUser.userId]) {
+                user.nickname = currentUser.nickname;
+                user.avatarUrl = currentUser.avatarUrl;
+                user.age = currentUser.age;
+                updated = YES;
+                break;
+            }
+        }
+        if (!updated) {
+            [users addObject:currentUser];
+        }
+        globalData.userList = users.copy;
+        [self saveGlobalData:globalData completion:completion];
+    }];
+}
+
 - (void)fetchPostsWithCategory:(NSString *)postCategory completion:(LuketPostsCompletion)completion {
     [self loadGlobalDataIfNeededWithCompletion:^(LuketGlobalData * _Nullable data, NSError * _Nullable error) {
         NSArray<LuketPost *> *posts = data.postList ?: @[];

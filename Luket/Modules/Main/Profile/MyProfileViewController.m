@@ -11,6 +11,7 @@
 #import "../Common/LuketDiamondStore.h"
 #import "../Common/LuketMediaResource.h"
 #import "../Data/Service/LuketDataService.h"
+#import "../Detail/DetailViewController.h"
 #import "../Settings/SettingViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
@@ -70,7 +71,7 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
 - (void)setupViews {
     UIImageView *headerBackgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MyProfileHeaderBackground"]];
     headerBackgroundView.tag = MyProfileViewTagHeaderBackground;
-    headerBackgroundView.contentMode = UIViewContentModeScaleToFill;
+    headerBackgroundView.contentMode = UIViewContentModeScaleAspectFill;
     headerBackgroundView.clipsToBounds = YES;
     [self.view insertSubview:headerBackgroundView atIndex:0];
 
@@ -257,6 +258,7 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
 - (void)applyCurrentUserData {
     UILabel *nameLabel = [self.view viewWithTag:MyProfileViewTagName];
     UILabel *bioLabel = [self.view viewWithTag:MyProfileViewTagBio];
+    UIImageView *headerBackgroundView = [self.view viewWithTag:MyProfileViewTagHeaderBackground];
     UIImageView *avatarView = [self.view viewWithTag:MyProfileViewTagAvatar];
     UILabel *followCountLabel = [self.view viewWithTag:MyProfileViewTagFollowCount];
     UILabel *fansCountLabel = [self.view viewWithTag:MyProfileViewTagFansCount];
@@ -267,6 +269,7 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
     followCountLabel.text = [NSString stringWithFormat:@"%ld", (long)[self followingCountForUserId:self.currentUser.userId]];
     fansCountLabel.text = [NSString stringWithFormat:@"%ld", (long)[self fansCountForUserId:self.currentUser.userId]];
     diamondCountLabel.text = [NSString stringWithFormat:@"%ld", (long)LuketDiamondStore.currentDiamonds];
+    [self setImageView:headerBackgroundView identifier:self.currentUser.avatarUrl placeholderImageName:@"MyProfileHeaderBackground"];
     [self setImageView:avatarView identifier:self.currentUser.avatarUrl placeholderImageName:@"HomeHeroImage"];
 }
 
@@ -427,6 +430,28 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
     return cell;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.item >= self.currentUserPosts.count) {
+        return;
+    }
+
+    LuketPost *post = self.currentUserPosts[indexPath.item];
+    if (![self isDetailMediaPost:post]) {
+        return;
+    }
+
+    DetailViewController *detailViewController = [[DetailViewController alloc] init];
+    detailViewController.post = post;
+    detailViewController.globalData = self.globalData;
+    detailViewController.author = self.currentUser;
+    detailViewController.users = self.globalData.userList ?: @[];
+    detailViewController.postComments = [self commentsForPostId:post.postId];
+    detailViewController.postLikedByCurrentUser = [self currentUserLikedPostId:post.postId];
+    detailViewController.authorFollowedByCurrentUser = [self currentUserFollowedUserId:post.publishUserId];
+    detailViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:detailViewController animated:YES completion:nil];
+}
+
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     CGFloat scale = CGRectGetWidth(collectionView.bounds) / 375.0;
     return CGSizeMake(162.0 * scale, 187.0 * scale);
@@ -498,6 +523,53 @@ static NSString * const MyProfileAboutStorageKeyPrefix = @"ProfileAbout";
     ProfileUserListViewController *viewController = [[ProfileUserListViewController alloc] initWithMode:mode];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (BOOL)isDetailMediaPost:(LuketPost *)post {
+    NSString *mediaType = [post.mediaType lowercaseString];
+    return [mediaType isEqualToString:LuketPostMediaTypeImage] || [mediaType isEqualToString:LuketPostMediaTypeVideo];
+}
+
+- (NSArray<LuketPostComment *> *)commentsForPostId:(NSString *)postId {
+    if (postId.length == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LuketPostComment *> *comments = [NSMutableArray array];
+    for (LuketPostComment *comment in self.globalData.postCommentList) {
+        if ([comment.postId isEqualToString:postId]) {
+            [comments addObject:comment];
+        }
+    }
+    return comments.copy;
+}
+
+- (BOOL)currentUserLikedPostId:(NSString *)postId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (postId.length == 0 || currentUserId.length == 0) {
+        return NO;
+    }
+
+    for (LuketLikeRelation *relation in self.globalData.likeList) {
+        if ([relation.postId isEqualToString:postId] && [relation.userId isEqualToString:currentUserId]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (BOOL)currentUserFollowedUserId:(NSString *)targetUserId {
+    NSString *currentUserId = LuketDataService.sharedService.currentLoginUserId;
+    if (currentUserId.length == 0 || targetUserId.length == 0 || [currentUserId isEqualToString:targetUserId]) {
+        return NO;
+    }
+
+    for (LuketFollowRelation *relation in self.globalData.followList) {
+        if ([relation.userId isEqualToString:currentUserId] && [relation.targetUserId isEqualToString:targetUserId]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 - (void)setImageView:(UIImageView *)imageView identifier:(NSString *)identifier placeholderImageName:(NSString *)placeholderImageName {

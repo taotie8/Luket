@@ -4,17 +4,24 @@
 //
 
 #import "PersonalViewController.h"
+#import "../Main/Data/Service/LuketDataService.h"
+#import "../Main/TabBar/MainTabBarController.h"
 
-@interface PersonalViewController () <UITextFieldDelegate, UITextViewDelegate>
+static NSString * const PersonalProfileAboutStorageKeyPrefix = @"ProfileAbout";
+
+@interface PersonalViewController () <UITextFieldDelegate, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (nonatomic, strong) UIView *topCardView;
 @property (nonatomic, strong) UIView *formContentView;
 @property (nonatomic, strong) UIImageView *formCardImageView;
+@property (nonatomic, strong) UIImageView *avatarImageView;
+@property (nonatomic, copy) NSString *selectedAvatarIdentifier;
 @property (nonatomic, strong) UITextField *nameTextField;
 @property (nonatomic, strong) UITextView *aboutTextView;
 @property (nonatomic, strong) UIButton *ageButton;
 @property (nonatomic, strong) UIImageView *nextButtonImageView;
 @property (nonatomic, weak) UIView *activeInputView;
+@property (nonatomic, assign) BOOL savingProfile;
 
 @end
 
@@ -63,14 +70,21 @@
     self.nextButtonImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalNextButton"]];
     self.nextButtonImageView.contentMode = UIViewContentModeScaleAspectFit;
     self.nextButtonImageView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *nextTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(nextButtonTapped)];
+    [self.nextButtonImageView addGestureRecognizer:nextTap];
     [self.view addSubview:self.nextButtonImageView];
 }
 
 - (void)setupFormViews {
-    UIImageView *avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalAvatarCamera"]];
-    avatarImageView.frame = CGRectMake(135.0, 55.0, 70.0, 70.0);
-    avatarImageView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.formContentView addSubview:avatarImageView];
+    self.avatarImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalAvatarCamera"]];
+    self.avatarImageView.frame = CGRectMake(135.0, 55.0, 70.0, 70.0);
+    self.avatarImageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.avatarImageView.clipsToBounds = YES;
+    self.avatarImageView.layer.cornerRadius = 35.0;
+    self.avatarImageView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *avatarTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(changeAvatarTapped)];
+    [self.avatarImageView addGestureRecognizer:avatarTap];
+    [self.formContentView addSubview:self.avatarImageView];
     
     UILabel *nameLabel = [self titleLabelWithText:@"Name"];
     nameLabel.frame = CGRectMake(21.0, 149.0, 200.0, 28.0);
@@ -109,6 +123,7 @@
     [self.ageButton setTitle:@"18" forState:UIControlStateNormal];
     [self.ageButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.ageButton.titleLabel.font = [UIFont systemFontOfSize:16.0];
+    [self.ageButton addTarget:self action:@selector(ageButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self.formContentView addSubview:self.ageButton];
     
     UIImageView *arrowImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"PersonalAgeArrow"]];
@@ -173,6 +188,150 @@
 
 - (void)backButtonTapped {
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)nextButtonTapped {
+    if (self.savingProfile) {
+        return;
+    }
+
+    [self.view endEditing:YES];
+    NSString *name = [self trimmedText:self.nameTextField.text];
+    NSString *about = [self trimmedText:self.aboutTextView.text];
+    if ([about isEqualToString:@"Please enter"]) {
+        about = @"";
+    }
+
+    if (name.length == 0) {
+        [self showAlertWithMessage:@"Please enter your name."];
+        return;
+    }
+
+    [self saveAboutText:about];
+    [self setSavingProfile:YES];
+
+    NSInteger age = self.ageButton.currentTitle.integerValue;
+    [[LuketDataService sharedService] updateCurrentUserProfileWithNickname:name
+                                                                 avatarUrl:self.selectedAvatarIdentifier
+                                                                       age:age
+                                                                completion:^(BOOL success, NSString *message, NSError * _Nullable error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self setSavingProfile:NO];
+            if (!success || error) {
+                [self showAlertWithMessage:error.localizedDescription ?: message ?: @"Save failed."];
+                return;
+            }
+            [self enterMainPage];
+        });
+    }];
+}
+
+- (void)enterMainPage {
+    UIWindow *window = self.view.window;
+    MainTabBarController *tabBarController = [[MainTabBarController alloc] init];
+    if (!window) {
+        tabBarController.modalPresentationStyle = UIModalPresentationFullScreen;
+        [self presentViewController:tabBarController animated:YES completion:nil];
+        return;
+    }
+
+    [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+        window.rootViewController = tabBarController;
+    } completion:nil];
+}
+
+- (void)setSavingProfile:(BOOL)savingProfile {
+    _savingProfile = savingProfile;
+    self.nextButtonImageView.userInteractionEnabled = !savingProfile;
+    self.nextButtonImageView.alpha = savingProfile ? 0.72 : 1.0;
+}
+
+- (void)changeAvatarTapped {
+    UIImagePickerController *pickerController = [[UIImagePickerController alloc] init];
+    pickerController.delegate = self;
+    pickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    pickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self presentViewController:pickerController animated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
+    UIImage *image = info[UIImagePickerControllerEditedImage] ?: info[UIImagePickerControllerOriginalImage];
+    if (image) {
+        self.avatarImageView.image = image;
+        self.selectedAvatarIdentifier = [self saveAvatarImage:image];
+    }
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (NSString *)saveAvatarImage:(UIImage *)image {
+    NSData *imageData = UIImageJPEGRepresentation(image, 0.85);
+    if (imageData.length == 0) {
+        return @"";
+    }
+
+    NSString *userId = LuketDataService.sharedService.currentUser.userId.length > 0 ? LuketDataService.sharedService.currentUser.userId : LuketDataService.sharedService.currentLoginUserId;
+    NSString *fileName = [NSString stringWithFormat:@"ProfileAvatar.%@.jpg", userId.length > 0 ? userId : NSUUID.UUID.UUIDString];
+    NSURL *documentsURL = [NSFileManager.defaultManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask].firstObject;
+    NSURL *avatarsURL = [documentsURL URLByAppendingPathComponent:@"Avatars" isDirectory:YES];
+    NSError *directoryError;
+    [NSFileManager.defaultManager createDirectoryAtURL:avatarsURL withIntermediateDirectories:YES attributes:nil error:&directoryError];
+    if (directoryError) {
+        return @"";
+    }
+
+    NSURL *fileURL = [avatarsURL URLByAppendingPathComponent:fileName];
+    NSError *writeError;
+    BOOL saved = [imageData writeToURL:fileURL options:NSDataWritingAtomic error:&writeError];
+    return saved && !writeError ? fileURL.path : @"";
+}
+
+- (void)ageButtonTapped {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
+    for (NSInteger age = 18; age <= 60; age++) {
+        NSString *ageText = [NSString stringWithFormat:@"%ld", (long)age];
+        UIAlertAction *action = [UIAlertAction actionWithTitle:ageText style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [self.ageButton setTitle:ageText forState:UIControlStateNormal];
+        }];
+        [alertController addAction:action];
+    }
+    [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    alertController.popoverPresentationController.sourceView = self.ageButton;
+    alertController.popoverPresentationController.sourceRect = self.ageButton.bounds;
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)saveAboutText:(NSString *)about {
+    NSString *userId = LuketDataService.sharedService.currentUser.userId.length > 0 ? LuketDataService.sharedService.currentUser.userId : LuketDataService.sharedService.currentLoginUserId;
+    if (userId.length == 0) {
+        return;
+    }
+
+    NSString *key = [NSString stringWithFormat:@"%@.%@", PersonalProfileAboutStorageKeyPrefix, userId];
+    if (about.length > 0) {
+        [NSUserDefaults.standardUserDefaults setObject:about forKey:key];
+    } else {
+        [NSUserDefaults.standardUserDefaults removeObjectForKey:key];
+    }
+    [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (NSString *)trimmedText:(NSString *)text {
+    return [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] ?: @"";
+}
+
+- (void)showAlertWithMessage:(NSString *)message {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                             message:message
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)setupKeyboardHandling {

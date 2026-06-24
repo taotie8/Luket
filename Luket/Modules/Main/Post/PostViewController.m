@@ -12,7 +12,7 @@
 @property (nonatomic, strong) UITextView *copywriterTextView;
 @property (nonatomic, strong) UIView *uploadCardView;
 @property (nonatomic, strong) UIScrollView *uploadScrollView;
-@property (nonatomic, strong) UILabel *uploadCountLabel;
+//@property (nonatomic, strong) UILabel *uploadCountLabel;
 @property (nonatomic, strong) NSMutableArray<UIImage *> *selectedImages;
 @property (nonatomic, strong) UIView *photoSourceDimmingView;
 @property (nonatomic, strong) UIView *photoSourceSheetView;
@@ -105,17 +105,17 @@
     [self.view addSubview:self.uploadCardView];
 
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    titleLabel.text = @"Upload ( Pic)";
+    titleLabel.text = @"Upload";
     titleLabel.textAlignment = NSTextAlignmentCenter;
     titleLabel.textColor = [self titleColor];
     titleLabel.font = [self titleFontWithSize:18.0];
     titleLabel.tag = 1002;
     [self.uploadCardView addSubview:titleLabel];
 
-    self.uploadCountLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    self.uploadCountLabel.textColor = [self titleColor];
-    self.uploadCountLabel.font = [UIFont systemFontOfSize:12.0 weight:UIFontWeightMedium];
-    [self.uploadCardView addSubview:self.uploadCountLabel];
+//    self.uploadCountLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+//    self.uploadCountLabel.textColor = [self titleColor];
+//    self.uploadCountLabel.font = [UIFont systemFontOfSize:12.0 weight:UIFontWeightMedium];
+//    [self.uploadCardView addSubview:self.uploadCountLabel];
 
     self.uploadScrollView = [[UIScrollView alloc] init];
     self.uploadScrollView.showsHorizontalScrollIndicator = NO;
@@ -152,11 +152,11 @@
     self.uploadCardView.frame = CGRectMake(20.0, CGRectGetMaxY(self.copywriterCardView.frame) + 19.0, width - 40.0, 230.0);
     UILabel *uploadTitleLabel = [self.uploadCardView viewWithTag:1002];
     [uploadTitleLabel sizeToFit];
-    [self.uploadCountLabel sizeToFit];
-    CGFloat titleGroupWidth = CGRectGetWidth(uploadTitleLabel.bounds) + 12.0 + CGRectGetWidth(self.uploadCountLabel.bounds);
-    CGFloat titleX = (CGRectGetWidth(self.uploadCardView.bounds) - titleGroupWidth) / 2.0;
+//    [self.uploadCountLabel sizeToFit];
+//    CGFloat titleGroupWidth = CGRectGetWidth(uploadTitleLabel.bounds) + 12.0 + CGRectGetWidth(self.uploadCountLabel.bounds);
+    CGFloat titleX = (CGRectGetWidth(self.uploadCardView.bounds) - 40) / 2.0;
     uploadTitleLabel.frame = CGRectMake(titleX, 18.0, CGRectGetWidth(uploadTitleLabel.bounds), 24.0);
-    self.uploadCountLabel.frame = CGRectMake(CGRectGetMaxX(uploadTitleLabel.frame) + 12.0, 22.0, CGRectGetWidth(self.uploadCountLabel.bounds), 16.0);
+//    self.uploadCountLabel.frame = CGRectMake(CGRectGetMaxX(uploadTitleLabel.frame) + 12.0, 22.0, CGRectGetWidth(self.uploadCountLabel.bounds), 16.0);
 
     self.uploadScrollView.frame = CGRectMake(26.0, 61.0, CGRectGetWidth(self.uploadCardView.bounds) - 26.0, 125.0);
     UIView *addPhotoView = [self.uploadScrollView viewWithTag:1006];
@@ -438,7 +438,7 @@
         [self.uploadScrollView addSubview:imageView];
     }];
 
-    self.uploadCountLabel.text = [NSString stringWithFormat:@"(%lu/4)", (unsigned long)self.selectedImages.count];
+//    self.uploadCountLabel.text = [NSString stringWithFormat:@"(%lu/4)", (unsigned long)self.selectedImages.count];
     [self layoutViews];
 }
 

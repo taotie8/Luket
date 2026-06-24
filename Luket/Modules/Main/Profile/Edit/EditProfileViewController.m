@@ -313,6 +313,13 @@ static NSString * const EditProfileAboutStorageKeyPrefix = @"ProfileAbout";
     LuketUser *targetUser = [self userWithId:userId globalData:globalData];
     targetUser.nickname = name;
     self.profileUser.nickname = name;
+    if (self.selectedAvatarIdentifier.length > 0) {
+        targetUser.avatarUrl = self.selectedAvatarIdentifier;
+        self.profileUser.avatarUrl = self.selectedAvatarIdentifier;
+        if ([userId isEqualToString:LuketDataService.sharedService.currentLoginUserId]) {
+            LuketDataService.sharedService.currentUser.avatarUrl = self.selectedAvatarIdentifier;
+        }
+    }
     [self saveAboutText:about userId:userId];
 
     self.saveButton.enabled = NO;
