@@ -7,32 +7,86 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9D7F4A012FE9A90000C0D001 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = 9D7F4A012FE9A90000C0D002 /* SDWebImage */; };
-		9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */; };
-		9D7F4A032FE9A90000C0D001 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9D7F4A032FE9A90000C0D002 /* StoreKit.framework */; };
+		04130A6A2FEC1CCA00BDF990 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A692FEC1CCA00BDF990 /* FacebookCore */; };
+		04130A6C2FEC1CCA00BDF990 /* FacebookLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A6B2FEC1CCA00BDF990 /* FacebookLogin */; };
+		04130A6F2FEC1CD900BDF990 /* AdjustSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A6E2FEC1CD900BDF990 /* AdjustSdk */; };
+		066782563DV26L50562ZY82W /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = TO8ESQML0740401411OG56FT /* SDWebImage */; };
+		50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = Q43D2T785203139238070296 /* AVFoundation.framework */; };
+		AR4762K1VZ31782Q6342IF3E /* LuvUtilController.m in Sources */ = {isa = PBXBuildFile; fileRef = TN4GX93M9PX12A027J0J5498 /* LuvUtilController.m */; };
+		BI3G0Q24Q7603R9S3ML4113T /* LuvZhengMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = NS787F1DXC53M12Y3E414030 /* LuvZhengMainView.m */; };
+		CSFMBNADS156LL65B473422C /* LuvMoreController.m in Sources */ = {isa = PBXBuildFile; fileRef = KS565IP44G688V978UA70422 /* LuvMoreController.m */; };
+		EMQHD37Y07262C52AJ428U0E /* LuvNameView.m in Sources */ = {isa = PBXBuildFile; fileRef = AG243ZEDWW9TU3D381UC2R81 /* LuvNameView.m */; };
+		EN9Y82Q08859N284G1BE97R1 /* LuvStoreAgreementView.m in Sources */ = {isa = PBXBuildFile; fileRef = MAH8U3843PF894331S766544 /* LuvStoreAgreementView.m */; };
+		ES2D90S5R532C34681N07B35 /* LuvReportCenterController.m in Sources */ = {isa = PBXBuildFile; fileRef = BD314M308X7PT87G3704563P /* LuvReportCenterController.m */; };
+		FR424157G591JJY93BB4A964 /* LuvDelegatePasswordView.m in Sources */ = {isa = PBXBuildFile; fileRef = UF2N679508R092XT9PDJ18C4 /* LuvDelegatePasswordView.m */; };
+		IINZ2I4C415220315073916B /* LuvMediaView.m in Sources */ = {isa = PBXBuildFile; fileRef = BJJKVL5X12P44N18Z541C513 /* LuvMediaView.m */; };
+		LYC7CB8O9X2K9F02866P7A88 /* LuvLoginMoreObject.m in Sources */ = {isa = PBXBuildFile; fileRef = JTB6MJ0WKPJJG40535457815 /* LuvLoginMoreObject.m */; };
+		ML1S3G2O83W6425Q6P56T045 /* LuvAgreementController.m in Sources */ = {isa = PBXBuildFile; fileRef = FVSN1345GJV8M15EK1100000 /* LuvAgreementController.m */; };
+		MYF2929N2699236W7331HU08 /* LuvActionPasswordObject.m in Sources */ = {isa = PBXBuildFile; fileRef = NF70P665M402N4845468K6CV /* LuvActionPasswordObject.m */; };
+		OI358YI4X757F881Y5S7G840 /* LuvReportView.m in Sources */ = {isa = PBXBuildFile; fileRef = ZJ17F464333Q378318K7W5LU /* LuvReportView.m */; };
+		R385RA3453OF837Z73967Q11 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5909H4Q620319E05Q50K55J9 /* StoreKit.framework */; };
+		TG946X38523H92090516Y2N3 /* LuvDiamondClientObject.m in Sources */ = {isa = PBXBuildFile; fileRef = TW69N5XHL1Q89D5485VJDQ6T /* LuvDiamondClientObject.m */; };
+		UQQD7918665P8O2696402KU4 /* LuvMessageDelegateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = LC4IVP88458IA94M31310FHV /* LuvMessageDelegateObject.m */; };
+		XQ13Z60FB0X3E4035M8RMW31 /* LuvDetailObject.m in Sources */ = {isa = PBXBuildFile; fileRef = QXN43E12NPHSJ820N754F5H9 /* LuvDetailObject.m */; };
+		YX68813WMR2124H04A106SHL /* LuvChatLoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = LQ2297Z584982D12U49FJT95 /* LuvChatLoginView.m */; };
+		ZL73095Z9I91760JT0217210 /* LuvBiaoChatroomView.m in Sources */ = {isa = PBXBuildFile; fileRef = IJ55I54VQF8QQ01Q00912P15 /* LuvBiaoChatroomView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		723E4BB72FD016FB0024B9F9 /* Luket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Luket.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		9D7F4A032FE9A90000C0D002 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		5909H4Q620319E05Q50K55J9 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		AG243ZEDWW9TU3D381UC2R81 /* LuvNameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvNameView.m; sourceTree = "<group>"; };
+		BD314M308X7PT87G3704563P /* LuvReportCenterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvReportCenterController.m; sourceTree = "<group>"; };
+		BJJKVL5X12P44N18Z541C513 /* LuvMediaView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvMediaView.m; sourceTree = "<group>"; };
+		BV60P794203H7008J4662DLJ /* LuvNameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvNameView.h; sourceTree = "<group>"; };
+		C558W3130T0E1548YYY53LD2 /* Luket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Luket.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CM021UW202796O0L36955082 /* LuvChatLoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvChatLoginView.h; sourceTree = "<group>"; };
+		EP8Y6ZB82954JQ6VJ8698Z94 /* LuvReportView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvReportView.h; sourceTree = "<group>"; };
+		FVSN1345GJV8M15EK1100000 /* LuvAgreementController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvAgreementController.m; sourceTree = "<group>"; };
+		GAC6Y95OR7WR371247N8Z1U9 /* LuvMoreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvMoreController.h; sourceTree = "<group>"; };
+		GIRQ7X2291FU2413296H71T0 /* LuvAgreementController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvAgreementController.h; sourceTree = "<group>"; };
+		HZ504PCXZ750L7T99WC51F71 /* LuvDiamondClientObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvDiamondClientObject.h; sourceTree = "<group>"; };
+		IC635K5I35J26B4871H053U3 /* LuvUtilController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvUtilController.h; sourceTree = "<group>"; };
+		IJ55I54VQF8QQ01Q00912P15 /* LuvBiaoChatroomView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvBiaoChatroomView.m; sourceTree = "<group>"; };
+		JTB6MJ0WKPJJG40535457815 /* LuvLoginMoreObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvLoginMoreObject.m; sourceTree = "<group>"; };
+		KD18659QU1685VDS0N0567V6 /* LuvBiaoChatroomView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvBiaoChatroomView.h; sourceTree = "<group>"; };
+		KS565IP44G688V978UA70422 /* LuvMoreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvMoreController.m; sourceTree = "<group>"; };
+		LC4IVP88458IA94M31310FHV /* LuvMessageDelegateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvMessageDelegateObject.m; sourceTree = "<group>"; };
+		LQ2297Z584982D12U49FJT95 /* LuvChatLoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvChatLoginView.m; sourceTree = "<group>"; };
+		MAH8U3843PF894331S766544 /* LuvStoreAgreementView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvStoreAgreementView.m; sourceTree = "<group>"; };
+		NF70P665M402N4845468K6CV /* LuvActionPasswordObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvActionPasswordObject.m; sourceTree = "<group>"; };
+		NS787F1DXC53M12Y3E414030 /* LuvZhengMainView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvZhengMainView.m; sourceTree = "<group>"; };
+		PT242D2408F98F8C4FUMKO13 /* LuvLoginMoreObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvLoginMoreObject.h; sourceTree = "<group>"; };
+		Q43D2T785203139238070296 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		QXN43E12NPHSJ820N754F5H9 /* LuvDetailObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvDetailObject.m; sourceTree = "<group>"; };
+		RD91CAO884026EV852M7078T /* LuvDetailObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvDetailObject.h; sourceTree = "<group>"; };
+		TN4GX93M9PX12A027J0J5498 /* LuvUtilController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvUtilController.m; sourceTree = "<group>"; };
+		TW69N5XHL1Q89D5485VJDQ6T /* LuvDiamondClientObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvDiamondClientObject.m; sourceTree = "<group>"; };
+		UBK5F8UZ2792933V8J731F41 /* LuvZhengMainView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvZhengMainView.h; sourceTree = "<group>"; };
+		UF2N679508R092XT9PDJ18C4 /* LuvDelegatePasswordView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvDelegatePasswordView.m; sourceTree = "<group>"; };
+		UG9IN820315454B0N31I621A /* LuvDelegatePasswordView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvDelegatePasswordView.h; sourceTree = "<group>"; };
+		UN91683003Q3153C328X4444 /* LuvActionPasswordObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvActionPasswordObject.h; sourceTree = "<group>"; };
+		WE23UAFH4J81YR12G9H0PF06 /* LuvStoreAgreementView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvStoreAgreementView.h; sourceTree = "<group>"; };
+		XBQEEA63701Z4495202084YN /* LuvMessageDelegateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvMessageDelegateObject.h; sourceTree = "<group>"; };
+		YF60D21RUB600C11C5JT5C12 /* LuvReportCenterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvReportCenterController.h; sourceTree = "<group>"; };
+		YX9514U29B5Y75282641WP01 /* LuvMediaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvMediaView.h; sourceTree = "<group>"; };
+		ZJ17F464333Q378318K7W5LU /* LuvReportView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvReportView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		723E4BCE2FD016FE0024B9F9 /* Exceptions for "Luket" folder in "Luket" target */ = {
+		408079Q23596J0CJ7Y7Z0RR5 /* Exceptions for "Luket" folder in "Luket" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 723E4BB62FD016FB0024B9F9 /* Luket */;
+			target = 743095NGCK5KF8K113P81247 /* Luket */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		723E4BB92FD016FB0024B9F9 /* Luket */ = {
+		5R394U5K28553G6F5T1121F4 /* Luket */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				723E4BCE2FD016FE0024B9F9 /* Exceptions for "Luket" folder in "Luket" target */,
+				408079Q23596J0CJ7Y7Z0RR5 /* Exceptions for "Luket" folder in "Luket" target */,
 			);
 			path = Luket;
 			sourceTree = "<group>";
@@ -40,41 +94,86 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		723E4BB42FD016FB0024B9F9 /* Frameworks */ = {
+		1752O0576J9838502178M73K /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D7F4A032FE9A90000C0D001 /* StoreKit.framework in Frameworks */,
-				9D7F4A022FE9A90000C0D001 /* AVFoundation.framework in Frameworks */,
-				9D7F4A012FE9A90000C0D001 /* SDWebImage in Frameworks */,
+				04130A6F2FEC1CD900BDF990 /* AdjustSdk in Frameworks */,
+				R385RA3453OF837Z73967Q11 /* StoreKit.framework in Frameworks */,
+				04130A6A2FEC1CCA00BDF990 /* FacebookCore in Frameworks */,
+				04130A6C2FEC1CCA00BDF990 /* FacebookLogin in Frameworks */,
+				50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */,
+				066782563DV26L50562ZY82W /* SDWebImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		723E4BAE2FD016FB0024B9F9 = {
+		03E7P211GLG350FK42C328K3 = {
 			isa = PBXGroup;
 			children = (
-				723E4BB92FD016FB0024B9F9 /* Luket */,
-				9D7F4A022FE9A90000C0D003 /* Frameworks */,
-				723E4BB82FD016FB0024B9F9 /* Products */,
+				5R394U5K28553G6F5T1121F4 /* Luket */,
+				K184WT0222793R4202L0266Z /* Frameworks */,
+				B49UM163O08L2908R502C667 /* Products */,
+				FV697T3Z4909DJ9250246GV6 /* cases */,
 			);
 			sourceTree = "<group>";
 		};
-		723E4BB82FD016FB0024B9F9 /* Products */ = {
+		B49UM163O08L2908R502C667 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				723E4BB72FD016FB0024B9F9 /* Luket.app */,
+				C558W3130T0E1548YYY53LD2 /* Luket.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9D7F4A022FE9A90000C0D003 /* Frameworks */ = {
+		FV697T3Z4909DJ9250246GV6 /* cases */ = {
 			isa = PBXGroup;
 			children = (
-				9D7F4A032FE9A90000C0D002 /* StoreKit.framework */,
-				9D7F4A022FE9A90000C0D002 /* AVFoundation.framework */,
+				UF2N679508R092XT9PDJ18C4 /* LuvDelegatePasswordView.m */,
+				UG9IN820315454B0N31I621A /* LuvDelegatePasswordView.h */,
+				NF70P665M402N4845468K6CV /* LuvActionPasswordObject.m */,
+				UN91683003Q3153C328X4444 /* LuvActionPasswordObject.h */,
+				TN4GX93M9PX12A027J0J5498 /* LuvUtilController.m */,
+				IC635K5I35J26B4871H053U3 /* LuvUtilController.h */,
+				TW69N5XHL1Q89D5485VJDQ6T /* LuvDiamondClientObject.m */,
+				HZ504PCXZ750L7T99WC51F71 /* LuvDiamondClientObject.h */,
+				AG243ZEDWW9TU3D381UC2R81 /* LuvNameView.m */,
+				BV60P794203H7008J4662DLJ /* LuvNameView.h */,
+				IJ55I54VQF8QQ01Q00912P15 /* LuvBiaoChatroomView.m */,
+				KD18659QU1685VDS0N0567V6 /* LuvBiaoChatroomView.h */,
+				NS787F1DXC53M12Y3E414030 /* LuvZhengMainView.m */,
+				UBK5F8UZ2792933V8J731F41 /* LuvZhengMainView.h */,
+				BJJKVL5X12P44N18Z541C513 /* LuvMediaView.m */,
+				YX9514U29B5Y75282641WP01 /* LuvMediaView.h */,
+				ZJ17F464333Q378318K7W5LU /* LuvReportView.m */,
+				EP8Y6ZB82954JQ6VJ8698Z94 /* LuvReportView.h */,
+				JTB6MJ0WKPJJG40535457815 /* LuvLoginMoreObject.m */,
+				PT242D2408F98F8C4FUMKO13 /* LuvLoginMoreObject.h */,
+				QXN43E12NPHSJ820N754F5H9 /* LuvDetailObject.m */,
+				RD91CAO884026EV852M7078T /* LuvDetailObject.h */,
+				LQ2297Z584982D12U49FJT95 /* LuvChatLoginView.m */,
+				CM021UW202796O0L36955082 /* LuvChatLoginView.h */,
+				FVSN1345GJV8M15EK1100000 /* LuvAgreementController.m */,
+				GIRQ7X2291FU2413296H71T0 /* LuvAgreementController.h */,
+				BD314M308X7PT87G3704563P /* LuvReportCenterController.m */,
+				YF60D21RUB600C11C5JT5C12 /* LuvReportCenterController.h */,
+				MAH8U3843PF894331S766544 /* LuvStoreAgreementView.m */,
+				WE23UAFH4J81YR12G9H0PF06 /* LuvStoreAgreementView.h */,
+				KS565IP44G688V978UA70422 /* LuvMoreController.m */,
+				GAC6Y95OR7WR371247N8Z1U9 /* LuvMoreController.h */,
+				LC4IVP88458IA94M31310FHV /* LuvMessageDelegateObject.m */,
+				XBQEEA63701Z4495202084YN /* LuvMessageDelegateObject.h */,
+			);
+			path = cases;
+			sourceTree = "<group>";
+		};
+		K184WT0222793R4202L0266Z /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5909H4Q620319E05Q50K55J9 /* StoreKit.framework */,
+				Q43D2T785203139238070296 /* AVFoundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -82,67 +181,73 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		723E4BB62FD016FB0024B9F9 /* Luket */ = {
+		743095NGCK5KF8K113P81247 /* Luket */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 723E4BCF2FD016FE0024B9F9 /* Build configuration list for PBXNativeTarget "Luket" */;
+			buildConfigurationList = M2256I4L8O1785418WSDZ56K /* Build configuration list for PBXNativeTarget "Luket" */;
 			buildPhases = (
-				723E4BB32FD016FB0024B9F9 /* Sources */,
-				723E4BB42FD016FB0024B9F9 /* Frameworks */,
-				723E4BB52FD016FB0024B9F9 /* Resources */,
+				WG0Z4XM4Q38F9L3V50M3M75C /* Sources */,
+				1752O0576J9838502178M73K /* Frameworks */,
+				3437XF1M5910JB39Q49K93LI /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				723E4BB92FD016FB0024B9F9 /* Luket */,
+				5R394U5K28553G6F5T1121F4 /* Luket */,
 			);
 			name = Luket;
 			packageProductDependencies = (
-				9D7F4A012FE9A90000C0D002 /* SDWebImage */,
+				TO8ESQML0740401411OG56FT /* SDWebImage */,
+				04130A692FEC1CCA00BDF990 /* FacebookCore */,
+				04130A6B2FEC1CCA00BDF990 /* FacebookLogin */,
+				04130A6E2FEC1CD900BDF990 /* AdjustSdk */,
 			);
 			productName = Luket;
-			productReference = 723E4BB72FD016FB0024B9F9 /* Luket.app */;
+			productReference = C558W3130T0E1548YYY53LD2 /* Luket.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		723E4BAF2FD016FB0024B9F9 /* Project object */ = {
+		XUMQ3EDC5E49GSN1944Y2651 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					723E4BB62FD016FB0024B9F9 = {
+					743095NGCK5KF8K113P81247 = {
 						CreatedOnToolsVersion = 26.0.1;
+						LastSwiftMigration = 2600;
 					};
 				};
 			};
-			buildConfigurationList = 723E4BB22FD016FB0024B9F9 /* Build configuration list for PBXProject "Luket" */;
+			buildConfigurationList = 03W769806I440RI64A443GET /* Build configuration list for PBXProject "Luket" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 723E4BAE2FD016FB0024B9F9;
+			mainGroup = 03E7P211GLG350FK42C328K3;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+				R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+				04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
+				04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 723E4BB82FD016FB0024B9F9 /* Products */;
+			productRefGroup = B49UM163O08L2908R502C667 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				723E4BB62FD016FB0024B9F9 /* Luket */,
+				743095NGCK5KF8K113P81247 /* Luket */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		723E4BB52FD016FB0024B9F9 /* Resources */ = {
+		3437XF1M5910JB39Q49K93LI /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -152,61 +257,95 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		723E4BB32FD016FB0024B9F9 /* Sources */ = {
+		WG0Z4XM4Q38F9L3V50M3M75C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FR424157G591JJY93BB4A964 /* LuvDelegatePasswordView.m in Sources */,
+				MYF2929N2699236W7331HU08 /* LuvActionPasswordObject.m in Sources */,
+				AR4762K1VZ31782Q6342IF3E /* LuvUtilController.m in Sources */,
+				TG946X38523H92090516Y2N3 /* LuvDiamondClientObject.m in Sources */,
+				EMQHD37Y07262C52AJ428U0E /* LuvNameView.m in Sources */,
+				ZL73095Z9I91760JT0217210 /* LuvBiaoChatroomView.m in Sources */,
+				BI3G0Q24Q7603R9S3ML4113T /* LuvZhengMainView.m in Sources */,
+				IINZ2I4C415220315073916B /* LuvMediaView.m in Sources */,
+				OI358YI4X757F881Y5S7G840 /* LuvReportView.m in Sources */,
+				LYC7CB8O9X2K9F02866P7A88 /* LuvLoginMoreObject.m in Sources */,
+				XQ13Z60FB0X3E4035M8RMW31 /* LuvDetailObject.m in Sources */,
+				YX68813WMR2124H04A106SHL /* LuvChatLoginView.m in Sources */,
+				ML1S3G2O83W6425Q6P56T045 /* LuvAgreementController.m in Sources */,
+				ES2D90S5R532C34681N07B35 /* LuvReportCenterController.m in Sources */,
+				EN9Y82Q08859N284G1BE97R1 /* LuvStoreAgreementView.m in Sources */,
+				CSFMBNADS156LL65B473422C /* LuvMoreController.m in Sources */,
+				UQQD7918665P8O2696402KU4 /* LuvMessageDelegateObject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		723E4BD02FD016FE0024B9F9 /* Debug */ = {
+		13464751Q5Z721C9S784RE25 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K2D8KTNH2W;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Luket/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Luvet;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Luvet requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luvet requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luvet needs access to your photo library for sharing memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = 1;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
 			};
-			name = Debug;
+			name = Release;
 		};
-		723E4BD12FD016FE0024B9F9 /* Release */ = {
+		2A4SDW585583U6Z5L80522B5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Luket/Luket.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -238,11 +377,58 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Luket/Luket-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
-		723E4BD22FD016FE0024B9F9 /* Debug */ = {
+		6604N7W566020U2472BHV336 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Luket/Luket.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K2D8KTNH2W;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Luket/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Luvet;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Luvet requires camera access to capture photos and record videos for creating and sharing content within the app. Your photos and videos may be used to personalize your profile or share posts with others. All media is stored securely on your device and will only be shared with your permission. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Luvet requires microphone access to record audio when capturing videos within the app. Audio is stored on your device and will only be shared as part of the content you choose to upload. Your privacy and security are important to us.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Luvet needs access to your photo library for sharing memorable photos/videos. It stays on your device unless you share. Access is for easy sharing and is privacy-protected.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Luket/Luket-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		P2062W75J365N0HN270E6T5Q /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -303,78 +489,23 @@
 			};
 			name = Debug;
 		};
-		723E4BD32FD016FE0024B9F9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		723E4BB22FD016FB0024B9F9 /* Build configuration list for PBXProject "Luket" */ = {
+		03W769806I440RI64A443GET /* Build configuration list for PBXProject "Luket" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				723E4BD22FD016FE0024B9F9 /* Debug */,
-				723E4BD32FD016FE0024B9F9 /* Release */,
+				P2062W75J365N0HN270E6T5Q /* Debug */,
+				13464751Q5Z721C9S784RE25 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		723E4BCF2FD016FE0024B9F9 /* Build configuration list for PBXNativeTarget "Luket" */ = {
+		M2256I4L8O1785418WSDZ56K /* Build configuration list for PBXNativeTarget "Luket" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				723E4BD02FD016FE0024B9F9 /* Debug */,
-				723E4BD12FD016FE0024B9F9 /* Release */,
+				6604N7W566020U2472BHV336 /* Debug */,
+				2A4SDW585583U6Z5L80522B5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -382,7 +513,23 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+		04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 14.1.0;
+			};
+		};
+		04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adjust/ios_sdk";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SDWebImage/SDWebImage.git";
 			requirement = {
@@ -393,12 +540,27 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9D7F4A012FE9A90000C0D002 /* SDWebImage */ = {
+		04130A692FEC1CCA00BDF990 /* FacebookCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9D7F4A012FE9A90000C0D003 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			package = 04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
+		04130A6B2FEC1CCA00BDF990 /* FacebookLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookLogin;
+		};
+		04130A6E2FEC1CD900BDF990 /* AdjustSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */;
+			productName = AdjustSdk;
+		};
+		TO8ESQML0740401411OG56FT /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */;
 			productName = SDWebImage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 723E4BAF2FD016FB0024B9F9 /* Project object */;
+	rootObject = XUMQ3EDC5E49GSN1944Y2651 /* Project object */;
 }

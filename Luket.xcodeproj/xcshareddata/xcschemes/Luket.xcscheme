@@ -15,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "723E4BB62FD016FB0024B9F9"
+               BlueprintIdentifier = "743095NGCK5KF8K113P81247"
                BuildableName = "Luket.app"
                BlueprintName = "Luket"
                ReferencedContainer = "container:Luket.xcodeproj">
@@ -44,7 +44,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "723E4BB62FD016FB0024B9F9"
+            BlueprintIdentifier = "743095NGCK5KF8K113P81247"
             BuildableName = "Luket.app"
             BlueprintName = "Luket"
             ReferencedContainer = "container:Luket.xcodeproj">
@@ -68,7 +68,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "723E4BB62FD016FB0024B9F9"
+            BlueprintIdentifier = "743095NGCK5KF8K113P81247"
             BuildableName = "Luket.app"
             BlueprintName = "Luket"
             ReferencedContainer = "container:Luket.xcodeproj">
