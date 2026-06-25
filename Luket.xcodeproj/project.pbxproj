@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04130A6A2FEC1CCA00BDF990 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A692FEC1CCA00BDF990 /* FacebookCore */; };
-		04130A6C2FEC1CCA00BDF990 /* FacebookLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A6B2FEC1CCA00BDF990 /* FacebookLogin */; };
-		04130A6F2FEC1CD900BDF990 /* AdjustSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 04130A6E2FEC1CD900BDF990 /* AdjustSdk */; };
 		066782563DV26L50562ZY82W /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = TO8ESQML0740401411OG56FT /* SDWebImage */; };
 		50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = Q43D2T785203139238070296 /* AVFoundation.framework */; };
 		AR4762K1VZ31782Q6342IF3E /* LuvUtilController.m in Sources */ = {isa = PBXBuildFile; fileRef = TN4GX93M9PX12A027J0J5498 /* LuvUtilController.m */; };
@@ -98,10 +95,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04130A6F2FEC1CD900BDF990 /* AdjustSdk in Frameworks */,
 				R385RA3453OF837Z73967Q11 /* StoreKit.framework in Frameworks */,
-				04130A6A2FEC1CCA00BDF990 /* FacebookCore in Frameworks */,
-				04130A6C2FEC1CCA00BDF990 /* FacebookLogin in Frameworks */,
 				50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */,
 				066782563DV26L50562ZY82W /* SDWebImage in Frameworks */,
 			);
@@ -199,9 +193,6 @@
 			name = Luket;
 			packageProductDependencies = (
 				TO8ESQML0740401411OG56FT /* SDWebImage */,
-				04130A692FEC1CCA00BDF990 /* FacebookCore */,
-				04130A6B2FEC1CCA00BDF990 /* FacebookLogin */,
-				04130A6E2FEC1CD900BDF990 /* AdjustSdk */,
 			);
 			productName = Luket;
 			productReference = C558W3130T0E1548YYY53LD2 /* Luket.app */;
@@ -233,8 +224,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */,
-				04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
-				04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B49UM163O08L2908R502C667 /* Products */;
@@ -368,7 +357,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.youayo.robartja;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
@@ -412,7 +401,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zhaotaolin.vidoo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.youayo.robartja;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = dev02;
@@ -513,22 +502,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 14.1.0;
-			};
-		};
-		04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/adjust/ios_sdk";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 		R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SDWebImage/SDWebImage.git";
@@ -540,21 +513,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		04130A692FEC1CCA00BDF990 /* FacebookCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
-			productName = FacebookCore;
-		};
-		04130A6B2FEC1CCA00BDF990 /* FacebookLogin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 04130A682FEC1CCA00BDF990 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
-			productName = FacebookLogin;
-		};
-		04130A6E2FEC1CD900BDF990 /* AdjustSdk */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 04130A6D2FEC1CD900BDF990 /* XCRemoteSwiftPackageReference "ios_sdk" */;
-			productName = AdjustSdk;
-		};
 		TO8ESQML0740401411OG56FT /* SDWebImage */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = R15R3544674YD0Z922ZH2A10 /* XCRemoteSwiftPackageReference "SDWebImage" */;

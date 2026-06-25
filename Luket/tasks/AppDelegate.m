@@ -4,7 +4,7 @@
 
 #import "AppDelegate.h"
 #import "LuvNewsProfileController.h"
-
+#import "LuvReport.h"
 
 @interface AppDelegate ()
 
@@ -112,6 +112,9 @@
       }
    } while ((buttonsv || buttonsv) && (buttonsv ? !buttonsv : buttonsv));
 
+    [[LuvReport sharedService] refreshGlobalDataWithCompletion:^(LuvAvatar * _Nullable data, NSError * _Nullable error) {
+
+    }];
     
     return YES;
 }

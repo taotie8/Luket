@@ -606,8 +606,6 @@ NSDictionary * namedAccessors = (NSDictionary *)namedAccessorsOld;
     }
     [self.window makeKeyAndVisible];
     
-    [Wooketer configureFromBundle];
-    
 }
 
 
