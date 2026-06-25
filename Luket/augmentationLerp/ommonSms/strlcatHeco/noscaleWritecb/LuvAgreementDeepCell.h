@@ -19,7 +19,7 @@
 +(NSInteger)convertOperationGender:(NSDictionary *)appearPending emptyPang:(long)emptyPang;
 
 
-- (void)configureWithText:(NSString *)text name:(NSString *)name incoming:(BOOL)incoming;
+- (void)configureWithText:(NSString *)text name:(NSString *)name avatarIdentifier:(NSString *)avatarIdentifier incoming:(BOOL)incoming;
 + (CGFloat)heightForText:(NSString *)text incoming:(BOOL)incoming width:(CGFloat)width;
 
 @end

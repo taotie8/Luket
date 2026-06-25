@@ -14,6 +14,7 @@
 static NSString * const FriendChatMessagesKeyPrefix = @"FriendChatMessages";
 static NSString * const FriendChatUpdatedTimeKeyPrefix = @"FriendChatUpdatedTime";
 static NSString * const FriendChatTitleKeyPrefix = @"FriendChatTitle";
+static NSString * const FriendChatAvatarKeyPrefix = @"FriendChatAvatar";
 
 @interface LuvConfirmController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate>
 @property(nonatomic, copy)NSString *  signDelete_3sCloseString;
@@ -1062,6 +1063,7 @@ NSDictionary * ivsetupPrecomp = (NSDictionary *)ivsetupPrecompCopyb;
             }
 
             UIImageView *actionView = [strongSelf.view viewWithTag:1003];
+            strongSelf.conversationAvatarIdentifier = scroll.avatarUrl ?: @"";
             [strongSelf setImageView:actionView identifier:scroll.avatarUrl placeholderImageName:@"customScrollLuket"];
         });
     }];
@@ -1965,6 +1967,24 @@ NSArray * blindingHaldclut = (NSArray *)blindingHaldclutCopy;
     return passwordu.currentUser.userId ?: @"";
 }
 
+- (NSString *)avatarIdentifierForIncomingMessage:(BOOL)incoming {
+    if (incoming) {
+        return self.conversationAvatarIdentifier ?: @"";
+    }
+    return [self currentUserAvatarIdentifier];
+}
+
+- (NSString *)currentUserAvatarIdentifier {
+    LuvReport *passwordu = LuvReport.sharedService;
+    if (passwordu.currentUser.avatarUrl.length > 0) {
+        return passwordu.currentUser.avatarUrl;
+    }
+
+    NSString *userId = [self currentUserId];
+    LuvMemberPassword *currentUser = [self userWithId:userId globalData:passwordu.cachedGlobalData];
+    return currentUser.avatarUrl ?: @"";
+}
+
 
 - (void)moreButtonTapped {
 
@@ -2394,9 +2414,11 @@ NSArray * assoclistNearly = (NSArray *)assoclistNearlyCopyn;
 
     LuvAgreementDeepCell *loadedCell = [tableView dequeueReusableCellWithIdentifier:@"LuvAgreementDeepCell" forIndexPath:indexPath];
     NSDictionary<NSString *, id> *message = self.messages[indexPath.row];
+    BOOL incoming = [message[@"incoming"] boolValue];
     [loadedCell configureWithText:message[@"text"]
                        name:message[@"name"]
-                   incoming:[message[@"incoming"] boolValue]];
+           avatarIdentifier:[self avatarIdentifierForIncomingMessage:incoming]
+                   incoming:incoming];
    while (![darkt containsString:@(from5[1]).stringValue]) {
       break;
    }
@@ -2454,6 +2476,15 @@ UIView * standardsBack = (UIView *)standardsBackCopyl;
     }
 
     return [NSString stringWithFormat:@"%@.%@", FriendChatMessagesKeyPrefix, urln];
+}
+
+- (NSString *)avatarStorageKey {
+    NSString *url = [self.conversationUserId stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (url.length == 0) {
+        return FriendChatAvatarKeyPrefix;
+    }
+
+    return [NSString stringWithFormat:@"%@.%@", FriendChatAvatarKeyPrefix, url];
 }
 
 -(NSArray *)bundleChangeEditDialogTitle:(NSString *)handlerEmpty ucopywriterHeart:(NSString *)ucopywriterHeart delegate_46Copywriter:(NSInteger)delegate_46Copywriter {
@@ -2549,6 +2580,9 @@ NSArray * excitationPrecompute = (NSArray *)excitationPrecomputeOld;
     [NSUserDefaults.standardUserDefaults setDouble:NSDate.date.timeIntervalSince1970 forKey:[self updatedTimeStorageKey]];
     if (self.conversationTitle.length > 0) {
         [NSUserDefaults.standardUserDefaults setObject:self.conversationTitle forKey:[self titleStorageKey]];
+    }
+    if (self.conversationAvatarIdentifier.length > 0) {
+        [NSUserDefaults.standardUserDefaults setObject:self.conversationAvatarIdentifier forKey:[self avatarStorageKey]];
     }
     [NSUserDefaults.standardUserDefaults synchronize];
 }

@@ -5,15 +5,18 @@
 #import "LuvConfirmController.h"
 #import "../testransFilename/backoffBlck/LuvReport.h"
 #import "LuvNewsProfileController.h"
+#import "../parabollicInit/LuvChatroomAvatar.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 
 static NSString * const MessageChatMessagesKeyPrefix = @"FriendChatMessages.";
 static NSString * const MessageChatUpdatedTimeKeyPrefix = @"FriendChatUpdatedTime.";
 static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
+static NSString * const MessageChatAvatarKeyPrefix = @"FriendChatAvatar.";
 
 @interface LuvCenterLuketCell : UITableViewCell
 
-- (void)configureWithTitle:(NSString *)title message:(NSString *)message index:(NSInteger)index;
+- (void)configureWithTitle:(NSString *)title message:(NSString *)message avatarIdentifier:(NSString *)avatarIdentifier index:(NSInteger)index;
 
 @end
 
@@ -57,11 +60,12 @@ static NSString * const MessageChatTitleKeyPrefix = @"FriendChatTitle.";
 
 
 
-- (void)configureWithTitle:(NSString *)title message:(NSString *)message index:(NSInteger)index {
+- (void)configureWithTitle:(NSString *)title message:(NSString *)message avatarIdentifier:(NSString *)avatarIdentifier index:(NSInteger)index {
 
     self.titleLabel.text = title.length > 0 ? title : @"MotoChat";
     self.messageLabel.text = message.length > 0 ? message : @"";
-    self.avatarImageView.transform = CGAffineTransformMakeScale(index % 2 == 0 ? 1.0 : -1.0, 1.0);
+    self.avatarImageView.transform = CGAffineTransformIdentity;
+    [self setAvatarImageWithIdentifier:avatarIdentifier];
 
          {
 long enhanceWhat = [self secondDirectoryBadgeSession:[NSString stringWithUTF8String:(char []){106,112,101,103,116,97,98,108,101,115,0}]];
@@ -70,6 +74,28 @@ long enhanceWhat = [self secondDirectoryBadgeSession:[NSString stringWithUTF8Str
 
 
 }
+}
+
+- (void)setAvatarImageWithIdentifier:(NSString *)identifier {
+    NSString *pending = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    UIImage *fallbackImage = [UIImage imageNamed:@"customScrollLuket"];
+    UIImage *dialogImage = [LuvChatroomAvatar localImageWithIdentifier:pending];
+    if (dialogImage) {
+        [self.avatarImageView sd_cancelCurrentImageLoad];
+        self.avatarImageView.image = dialogImage;
+        return;
+    }
+
+    NSURL *first = [LuvChatroomAvatar imageURLWithIdentifier:pending];
+    if (!first) {
+        [self.avatarImageView sd_cancelCurrentImageLoad];
+        self.avatarImageView.image = fallbackImage;
+        return;
+    }
+
+    [self.avatarImageView sd_setImageWithURL:first
+                            placeholderImage:fallbackImage
+                                     options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 
@@ -1034,6 +1060,35 @@ int cpiaMin = [self modalMessageAreaCreator];
     return userId.length > 0 ? userId : @"MotoChat";
 }
 
+- (LuvMemberPassword *)userWithId:(NSString *)userId {
+    if (userId.length == 0) {
+        return nil;
+    }
+
+    for (LuvMemberPassword *user in self.users) {
+        if ([user.userId isEqualToString:userId]) {
+            return user;
+        }
+    }
+
+    for (LuvMemberPassword *user in LuvReport.sharedService.cachedGlobalData.userList) {
+        if ([user.userId isEqualToString:userId]) {
+            return user;
+        }
+    }
+    return nil;
+}
+
+- (NSString *)displayNameForUser:(LuvMemberPassword *)user userId:(NSString *)userId {
+    if (user.nickname.length > 0) {
+        return user.nickname;
+    }
+    if (user.email.length > 0) {
+        return user.email;
+    }
+    return userId.length > 0 ? userId : @"MotoChat";
+}
+
 -(NSString *)persistOriginalCreate{
    volatile  NSDictionary * nicknamenOld = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithUTF8String:(char []){97,110,105,109,97,116,101,0}],@(752).stringValue, [NSString stringWithUTF8String:(char []){114,101,100,114,97,119,0}],@(722), nil];
     NSDictionary * nicknamen = (NSDictionary *)nicknamenOld;
@@ -1762,12 +1817,17 @@ NSString * rapidInet = (NSString *)rapidInetCopy;
 
         NSString *diamond = [NSString stringWithFormat:@"%@%@", MessageChatUpdatedTimeKeyPrefix, url];
         NSString *report = [NSString stringWithFormat:@"%@%@", MessageChatTitleKeyPrefix, url];
+        NSString *avatarKey = [NSString stringWithFormat:@"%@%@", MessageChatAvatarKeyPrefix, url];
         NSString *value = [NSUserDefaults.standardUserDefaults stringForKey:report];
+        NSString *storedAvatar = [NSUserDefaults.standardUserDefaults stringForKey:avatarKey];
+        LuvMemberPassword *messageUser = [self userWithId:url];
+        NSString *avatarIdentifier = storedAvatar.length > 0 ? storedAvatar : messageUser.avatarUrl;
         NSTimeInterval home = [NSUserDefaults.standardUserDefaults doubleForKey:diamond];
         [conversations addObject:@{
             @"userId": url ?: @"",
-            @"title": value.length > 0 ? value : [self displayNameForUserId:url],
+            @"title": value.length > 0 ? value : [self displayNameForUser:messageUser userId:url],
             @"lastMessage": zheng,
+            @"avatarUrl": avatarIdentifier ?: @"",
             @"updatedTime": @(home)
         }];
     }
@@ -1844,6 +1904,7 @@ NSString * rapidInet = (NSString *)rapidInetCopy;
     NSDictionary<NSString *, id> *conversation = self.conversations[indexPath.row];
     [loadedCell configureWithTitle:conversation[@"title"]
                      message:conversation[@"lastMessage"]
+            avatarIdentifier:conversation[@"avatarUrl"]
                        index:indexPath.row];
     return loadedCell;
 }

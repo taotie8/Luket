@@ -1535,6 +1535,12 @@ float readqLiberty = [self roomAlignmentScreenCache:62.0 productsHint:[NSDiction
     headerViewn.contentMode = UIViewContentModeScaleAspectFill;
     headerViewn.clipsToBounds = YES;
     [self.view insertSubview:headerViewn atIndex:0];
+    
+    UIImageView *avatarView = [[UIImageView alloc] init];
+    avatarView.image = [UIImage imageNamed:@"personalString"];
+    avatarView.contentMode = UIViewContentModeScaleAspectFill;
+    [self.view addSubview:avatarView];
+    avatarView.frame = CGRectMake(0, 0, self.view.frame.size.width, 375);
 
     UIButton *showButtonD = [UIButton buttonWithType:UIButtonTypeCustom];
     showButtonD.tag = NServiceAgreement;

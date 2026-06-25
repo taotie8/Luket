@@ -2,6 +2,8 @@
 #import "LuvNameView.h"
 
 #import "LuvAgreementDeepCell.h"
+#import "../../parabollicInit/LuvChatroomAvatar.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 #import "LuvNewsProfileController.h"
 
 
@@ -238,7 +240,7 @@ NSDictionary * newlineDisposed = (NSDictionary *)newlineDisposedOld;
 
 
 
-- (void)configureWithText:(NSString *)text name:(NSString *)name incoming:(BOOL)incoming {
+- (void)configureWithText:(NSString *)text name:(NSString *)name avatarIdentifier:(NSString *)avatarIdentifier incoming:(BOOL)incoming {
 
       volatile  double homeM = 2.0f;
       homeM -= (int)homeM / (MAX((int)homeM, 1));
@@ -247,7 +249,8 @@ NSDictionary * newlineDisposed = (NSDictionary *)newlineDisposedOld;
     self.nameLabel.text = name;
     self.bubbleLabel.text = text;
     self.bubbleLabel.textAlignment = incoming ? NSTextAlignmentLeft : NSTextAlignmentCenter;
-    self.avatarView.transform = incoming ? CGAffineTransformIdentity : CGAffineTransformMakeScale(-1.0, 1.0);
+    self.avatarView.transform = CGAffineTransformIdentity;
+    [self setAvatarImageWithIdentifier:avatarIdentifier];
     [self setNeedsLayout];
 
          {
@@ -470,6 +473,29 @@ NSInteger lldbinitCtloutput = [self convertOperationGender:[NSDictionary diction
         [self.contentView addSubview:self.bubbleLabel];
     }
     return self;
+}
+
+
+- (void)setAvatarImageWithIdentifier:(NSString *)identifier {
+    NSString *pending = [identifier stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    UIImage *fallbackImage = [UIImage imageNamed:@"customScrollLuket"];
+    UIImage *dialogImage = [LuvChatroomAvatar localImageWithIdentifier:pending];
+    if (dialogImage) {
+        [self.avatarView sd_cancelCurrentImageLoad];
+        self.avatarView.image = dialogImage;
+        return;
+    }
+
+    NSURL *first = [LuvChatroomAvatar imageURLWithIdentifier:pending];
+    if (!first) {
+        [self.avatarView sd_cancelCurrentImageLoad];
+        self.avatarView.image = fallbackImage;
+        return;
+    }
+
+    [self.avatarView sd_setImageWithURL:first
+                       placeholderImage:fallbackImage
+                                options:SDWebImageRetryFailed | SDWebImageScaleDownLargeImages];
 }
 
 
