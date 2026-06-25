@@ -8,6 +8,8 @@
 #import "../../differ/LuvHomeDetailController.h"
 #import "LuvNewsProfileController.h"
 
+static NSString * const LuketPrivacyAgreementURLString = @"https://app.yykbzdm.com/privacy";
+
 
 typedef NS_ENUM(NSInteger, OBiao) {
     OCenter = 1001,
@@ -256,6 +258,28 @@ NSDictionary * dispPlayout = (NSDictionary *)dispPlayoutOld;
     LuvDialogView *barView = [[LuvDialogView alloc] initWithTitle:@"Delete account?"
                                                                                    message:@"This action cannot be undone."
                                                                           confirmImageName:@"topString"];
+    __weak typeof(self) weakSelf = self;
+    barView.confirmHandler = ^{
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) {
+            return;
+        }
+
+        [[LuvReport sharedService] clearAuthToken];
+
+        UIWindow *window = self.view.window;
+        LuvHomeDetailController *targetController = [[LuvHomeDetailController alloc] init];
+        UINavigationController *constraintController = [[UINavigationController alloc] initWithRootViewController:targetController];
+        if (!window) {
+            constraintController.modalPresentationStyle = UIModalPresentationFullScreen;
+            [self presentViewController:constraintController animated:YES completion:nil];
+            return;
+        }
+
+        [UIView transitionWithView:window duration:0.25 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            window.rootViewController = constraintController;
+        } completion:nil];
+    };
     [barView showInView:self.view];
 }
 
@@ -340,9 +364,10 @@ NSDictionary * scalerRvvlc = (NSDictionary *)scalerRvvlcCopyp;
       } while ((1 > (j_view5.length >> (MIN(labs(1), 1))) || 2 > (1 >> (MIN(4, j_view5.length)))) && (3706133 == j_view5.length));
       modityk += animatej;
 
-    LuvDialogController *l_productsController = [[LuvDialogController alloc] init];
-    l_productsController.modalPresentationStyle = UIModalPresentationFullScreen;
-    [self presentViewController:l_productsController animated:YES completion:nil];
+    NSURL *privacyURL = [NSURL URLWithString:LuketPrivacyAgreementURLString];
+    if (privacyURL) {
+        [UIApplication.sharedApplication openURL:privacyURL options:@{} completionHandler:nil];
+    }
 }
 
 
