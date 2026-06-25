@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		066782563DV26L50562ZY82W /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = TO8ESQML0740401411OG56FT /* SDWebImage */; };
+		0D9E94E5FD4D6AA376F3EFA4 /* Pods_Luket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E14C6941F0122579A69801AD /* Pods_Luket.framework */; };
 		50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = Q43D2T785203139238070296 /* AVFoundation.framework */; };
 		AR4762K1VZ31782Q6342IF3E /* LuvUtilController.m in Sources */ = {isa = PBXBuildFile; fileRef = TN4GX93M9PX12A027J0J5498 /* LuvUtilController.m */; };
 		BI3G0Q24Q7603R9S3ML4113T /* LuvZhengMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = NS787F1DXC53M12Y3E414030 /* LuvZhengMainView.m */; };
@@ -31,12 +32,15 @@
 
 /* Begin PBXFileReference section */
 		5909H4Q620319E05Q50K55J9 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		8F2F04CBCE39E01B1F85FEA7 /* Pods-Luket.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Luket.debug.xcconfig"; path = "Target Support Files/Pods-Luket/Pods-Luket.debug.xcconfig"; sourceTree = "<group>"; };
+		A06BCD3731FAA491E9627DBD /* Pods-Luket.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Luket.release.xcconfig"; path = "Target Support Files/Pods-Luket/Pods-Luket.release.xcconfig"; sourceTree = "<group>"; };
 		AG243ZEDWW9TU3D381UC2R81 /* LuvNameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvNameView.m; sourceTree = "<group>"; };
 		BD314M308X7PT87G3704563P /* LuvReportCenterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvReportCenterController.m; sourceTree = "<group>"; };
 		BJJKVL5X12P44N18Z541C513 /* LuvMediaView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvMediaView.m; sourceTree = "<group>"; };
 		BV60P794203H7008J4662DLJ /* LuvNameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvNameView.h; sourceTree = "<group>"; };
 		C558W3130T0E1548YYY53LD2 /* Luket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Luket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CM021UW202796O0L36955082 /* LuvChatLoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvChatLoginView.h; sourceTree = "<group>"; };
+		E14C6941F0122579A69801AD /* Pods_Luket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Luket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EP8Y6ZB82954JQ6VJ8698Z94 /* LuvReportView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvReportView.h; sourceTree = "<group>"; };
 		FVSN1345GJV8M15EK1100000 /* LuvAgreementController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuvAgreementController.m; sourceTree = "<group>"; };
 		GAC6Y95OR7WR371247N8Z1U9 /* LuvMoreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuvMoreController.h; sourceTree = "<group>"; };
@@ -98,6 +102,7 @@
 				R385RA3453OF837Z73967Q11 /* StoreKit.framework in Frameworks */,
 				50405N0S2MJX17UNRU67631I /* AVFoundation.framework in Frameworks */,
 				066782563DV26L50562ZY82W /* SDWebImage in Frameworks */,
+				0D9E94E5FD4D6AA376F3EFA4 /* Pods_Luket.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,7 +116,18 @@
 				K184WT0222793R4202L0266Z /* Frameworks */,
 				B49UM163O08L2908R502C667 /* Products */,
 				FV697T3Z4909DJ9250246GV6 /* cases */,
+				40FB4DC6F9CE643F4FCFC7D1 /* Pods */,
 			);
+			sourceTree = "<group>";
+		};
+		40FB4DC6F9CE643F4FCFC7D1 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				8F2F04CBCE39E01B1F85FEA7 /* Pods-Luket.debug.xcconfig */,
+				A06BCD3731FAA491E9627DBD /* Pods-Luket.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		B49UM163O08L2908R502C667 /* Products */ = {
@@ -168,6 +184,7 @@
 			children = (
 				5909H4Q620319E05Q50K55J9 /* StoreKit.framework */,
 				Q43D2T785203139238070296 /* AVFoundation.framework */,
+				E14C6941F0122579A69801AD /* Pods_Luket.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -179,6 +196,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = M2256I4L8O1785418WSDZ56K /* Build configuration list for PBXNativeTarget "Luket" */;
 			buildPhases = (
+				C27D481652A6F4F1B9ADC37B /* [CP] Check Pods Manifest.lock */,
 				WG0Z4XM4Q38F9L3V50M3M75C /* Sources */,
 				1752O0576J9838502178M73K /* Frameworks */,
 				3437XF1M5910JB39Q49K93LI /* Resources */,
@@ -244,6 +262,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C27D481652A6F4F1B9ADC37B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Luket-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		WG0Z4XM4Q38F9L3V50M3M75C /* Sources */ = {
@@ -330,6 +373,7 @@
 		};
 		2A4SDW585583U6Z5L80522B5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A06BCD3731FAA491E9627DBD /* Pods-Luket.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -374,6 +418,7 @@
 		};
 		6604N7W566020U2472BHV336 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8F2F04CBCE39E01B1F85FEA7 /* Pods-Luket.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
